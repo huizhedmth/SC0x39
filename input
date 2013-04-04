@@ -1,0 +1,64 @@
+/* author: Huizhe Li
+ * 
+ * this file serves as the test case for the generated lexer
+ *
+ * note: the lexer applies "0x" as the prefix for hexadecimals
+ * 	 while in this file all hexadecimals begin with 0X. 
+ *	 This can be used to quickly tell whether a token 
+ *	 is matched by the lexer or not.
+ *
+ **/
+
+/* ---legal numbers can be recognized--- */
+0X09afAF 0017 100 019					
+
+
+/* ---delimiters work--- */
+100==0X64 100-0144 100;100 100[0X64[0144]]] 		
+
+
+/* ---non-numbers are not mismatched--- */
+ID100 100ILLEGAL 0.30XffILLEGAL 0X0G 0ABCD 0XFF0XFF	
+
+/* ---when numbers crash on comments--- */
+0X64/*OMG*/0144						
+
+
+/* ---comments are eaten up--- */
+/* comments1 */x = y/* /** /* com-
+ments2 ***/ + z/*** */; /* 
+comments3 */						
+
+
+/* ---examples on CS57 pages--- */
+bozo[16 /* ho dad */]	
+albatross[ bluejay[cardinal] * duck[egret] ]	
+
+
+/* ---a messier version of the above example--- */
+albatross[/*/*****oops**/ bluejay[cardinal/*wha
+t?
+????? */] /* I'm not the * u r expecting...*/* duck[16]/*finally
+over?
+yes...*/ ] 
+
+
+/* ---no conversion happens if no expression between []--- */
+int identifier[] = {1,2,3,4,5};
+
+/* ---nested array subscripts work well with the above feature--- */
+id1[ 019+id2 [ 019 + id3[]]]
+
+
+/* ---unresolved problems--- */	
+/* the following statements are not properly handled since 
+ * comments break patterns used by rules to match tokens
+ *
+ * a two-pass solution where all comments are eat up in the
+ * first pass would solve these problems, but would bring new 
+ * problems at the same time, for example constants split by comments
+ * would be mistakenly matched.
+ */ 
+int a/* comments */[expr + 019] = 1;	
+int a[/* comments */] = 1;
+
