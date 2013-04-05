@@ -1,0 +1,67 @@
+%{
+/* C57.l				
+ * 
+ * flex source codes that define rules for generatint a lexer 
+ * for the C57 language
+ *
+ * author: Huizhe Li, Master Student, Dartmouth College
+ */
+%}
+
+
+
+/* definition section */
+/**********************/
+%{
+#include "token.h"
+%}
+
+	/* C- */
+keyword		else|if|int|return|void|while|for|do|double|read|print
+_symbol		"+"|"-"|"*"|"/"|"<"|"<="|">"|">="|"=="|"!="|"="|";"|","|"("|")"|"["|"]"|"{"|"}"|"/*"|"*/"
+letter		[a-zA-Z]
+digit		[0-9]
+id		(_|{letter})(_|{letter}|{digit})*
+num		{digit}+
+
+	/* C57 */
+fnum		{num}"."{num}|"."{num}
+inc		"++"
+dec		"--"
+mod		"%"
+logical		"&&"|"||"|"!"
+
+	/* extra credit */
+break		break
+continue	continue
+static		static
+addr		"&"
+sizeof		sizeof
+opeq		"+="|"-="|"*="|"/="
+const		const
+struct		struct
+precmp		"#"
+extern		extern
+
+keyword_ex	{keyword}|{break}|{continue}|{static}|{sizeof}|{const}|{struct}|{extern}
+symbol		{_symbol}|{inc}|{dec}|{mod}|{logical}|
+symbol_ex	{symbol}|{addr}|{opeq}|{precmp}
+
+
+
+
+
+
+
+
+
+white		[ \t\n]+
+
+
+
+
+/* rule section */
+/****************/
+%%
+
+				ECHO;
