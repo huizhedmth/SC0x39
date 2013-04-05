@@ -2,3 +2,14 @@ I a
 m a 
 b a
 d man!
+
+\"           { BEGIN(string); }
+<string>\n   return OTHER;
+<string>\\\" { yymore(); }
+<string>\"   {
+  BEGIN(INITIAL);		/* go back to normal state */
+  yytext[--yyleng] = '\0';	/* remove the trailing double-quote */
+  return STRINGCONST;
+ }
+<string>.    { yymore(); }
+
