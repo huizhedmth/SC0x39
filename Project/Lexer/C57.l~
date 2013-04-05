@@ -24,7 +24,7 @@
 	/* C- */
 white		[ \t\n]+
 _keyword	else|if|int|return|void|while|for|do|double
-_symbol		"+"|"-"|"*"|"/"|"<"|"<="|">"|">="|"=="|"!="|"="|";"|","|"("|")"|"["|"]"|"{"|"}"
+_symbol		"+"|"-"|"*"|"/"|"<"|"<="|">"|">="|"=="|"!="|"="|";"|","|"("|")"|"["|"]"|"{"|"}"|":"
 letter		[a-zA-Z]
 digit		[0-9]
 id		(_|{letter})(_|{letter}|{digit})*
@@ -41,6 +41,8 @@ continue	continue
 sizeof		sizeof
 const		const
 switch		switch
+default		default
+case		case
 
 	/* extra credit */
 static		static
@@ -49,11 +51,12 @@ opeq		"+="|"-="|"*="|"/="
 struct		struct
 precmp		"#"
 extern		extern
+dot		"."		
 
-keyword		{_keyword}|{break}|{continue}|{sizeof}|{const}|{switch}
+keyword		{_keyword}|{break}|{continue}|{sizeof}|{const}|{switch}|{default}
 keyword_ex	{keyword}|{static}|{struct}|{extern}
 symbol		{_symbol}|{inc}|{dec}|{mod}|{logical}
-symbol_ex	{symbol}|{addr}|{opeq}|{precmp}
+symbol_ex	{symbol}|{addr}|{opeq}|{precmp}|{dot}
 
  /* rule section */
  /****************/
@@ -75,10 +78,10 @@ symbol_ex	{symbol}|{addr}|{opeq}|{precmp}
 <string>.    { yymore(); }
 
 {white}					/* ignore white spaces */
+{keyword_ex}				return KWLookup(yytext);
 {id}					return ID;
 {num}					return NUM;
 {fnum}					return FNUM;
-{keyword_ex}				return KWLookup(yytext);
 {symbol_ex}				return SMBLookup(yytext);
 
  /* user code section */
@@ -90,8 +93,6 @@ int KWLookup(char *s) {
     char *keyword;
     int token;
   } KWItem;
-
-  const int KWCOUNT = 17;
 
   static KWItem keywords[] = {
  	{"else", ELSE},
@@ -110,7 +111,9 @@ int KWLookup(char *s) {
 	{"switch", SWITCH},
 	{"static", STATIC},
 	{"struct", STRUCT},
-	{"extern", EXTERN}
+	{"extern", EXTERN},
+	{"default", DEFAULT},
+	{"case", CASE}
  };
 
   KWItem *kw;
@@ -126,8 +129,6 @@ int SMBLookup(char *s) {
     char *symbol;
     int token;
   } SMBItem;
-
-  const int SMBCOUNT = 37;
 
   static SMBItem symbols[] = {
  	{"+", PLUS},
@@ -160,7 +161,9 @@ int SMBLookup(char *s) {
 	{"*=", MULEQ},
 	{"/=", DIVEQ},
 	{"#", PRECMP},
-	{"&", ADDR}
+	{"&", ADDR},
+	{".", DOT}
+	
  };
 
   SMBItem *symb;

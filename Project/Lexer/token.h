@@ -26,7 +26,8 @@
 #define	STATIC		272
 #define	STRUCT		273
 #define	EXTERN		274
-
+#define DEFAULT		275
+#define CASE		276
 
 /* operators & special symbols */
 #define	PLUS		280
@@ -38,7 +39,7 @@
 #define	GRTER		286
 #define	GRTEREQ		287
 #define	EQ		288
-#define	NEQ		299
+#define	NEQ		289
 #define	ASSIGN		290
 #define	SEMICOLON	291
 #define	COMMA		292
@@ -60,6 +61,8 @@
 #define	DIVEQ		308
 #define	PRECMP		309
 #define	ADDR		310
+#define DOT		311
+#define COLON		312
 
 
 /* other tokens */
