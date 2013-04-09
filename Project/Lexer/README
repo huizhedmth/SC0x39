@@ -1,0 +1,46 @@
+/* README
+ * 
+ * the testing guide for project 1 - lexer for CS57
+ *
+ * author: Huizhe Li, Master Student, Dartmouth College
+ *
+ */
+
+/************ 1. contents *********************/
+source file:
+C57.l, main.c, token.h
+
+test cases:
+input1, input2, input3
+
+test results:
+input1.out, input2.out, input3.out
+
+makefile:
+makefile
+
+testing guide:
+README
+
+/*********** 2. how to build and run ***********/
+e.g.
+$ make
+$ ./test input1
+$ cat input1.out
+
+/*********** 3. details of test cases **********/
+1.input1
+This file contains codes of a simple program that makes use of every possible token in C57.
+The single purpose of this test case is to verify that all illegal tokens can be correctly
+recognized.
+
+2.input2
+This file contains codes of the same program, except that entensive comments and white spaces
+are applied. The single purpose of this test case is to verify that comments and white spaces
+can be properly handled. The output "input2.out" should have the exact same contents as "input1.out".
+
+3.input3
+This file contains codes of a program that contain illegal identifiers and illegal characters (or "other"
+characters, as the token name OTHER indicates). Illegal identifiers include strings of digits, 
+letters and underlines that begin with a digit. "Other" characters include all unmatched single 
+characters (as indicated by '.' as the last rule in C57.l).

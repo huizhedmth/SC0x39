@@ -70,5 +70,6 @@
 #define	NUM		331
 #define	FNUM		332
 #define STRING		333
+#define	ILLEGALID	334
 
 #define OTHER		340

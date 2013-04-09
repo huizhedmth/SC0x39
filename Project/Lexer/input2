@@ -1,7 +1,9 @@
 /* input2
  * 
- * same program as input1, except with more extensive COMMENTS
- * (see input2.out for results)
+ * same program as input1, except with mich more 
+ * extensive COMMENTS, WHITESPACES and NEWLINES
+ * (see input2.out for results, which should have exactly
+ *  the same contents as input1.out)
  *
  * author: Huizhe Li, Master Student, Dartmouth College
  *
@@ -11,10 +13,13 @@
 
 extern int integer;				
 
-int main(void){	
+int 
+main(void)
+{	
 	/* a huge wave of comments coming... */				
 	static/**/const/**/int/**/array[/*r u kidding*/3/*i m not*/] = {/*wow..*/0/*come on*/,/*leami alone*/0,0}/*soon*/;
-	struct bozo{				
+	struct 
+bozo{				
 		int/* come up
 wi-
 th a really cool name!
@@ -24,10 +29,13 @@ good
 enough...*/zo;
 	}/* but 'zo' is much better */;
 
-	struct bozo bz;
+	struct                 bozo
+ bz
+;
 	bz.bo = /* play with
 bo*/1;
-	bz.zo -= 1.0/* or with zo?
+	bz.zo -= 
+1.0/* or with zo?
 *
 */;	
 
@@ -48,15 +56,18 @@ bo*/1;
 
 .
 */
-	integer /= integer * 3 / 4 - 5;		
-	integer *= integer;	
+	integer /=        integer * 3 / 4 - 5;		
+	integer
+ *= integer;	
 	/* let's see what conditions have to say */		
-	if/*if waht?*/ ( (integer < integer + 1)/*and?...
+	if/*if waht?*/ ( (integer < 
+integer + 1)   /*and?...
 *****/ && (integer <= 0)){ /* then? */				
 		if ((--integer/*stupid expression */ > -1)/*or...?*/ || (/*saying the obvious!*/++integer >= integer/*i'm do-
 ne with this mess!!!!!
 */))/*hope it's a closure*/{/*oh no..*/			
-				if ((integer == !integer)/* make no sense*/ &&/* just for fun*/ (integer != integer)){	
+				if ((integer == 
+!integer)/* make no sense*/ &&/* just for fun*/ (integer != integer)){	
 					printf/* finally sth interesting
 */("---string literal---\nanother line!\n"/*i dont think a newline is coming up*/);
 					integer = /*hello*/10/*i'm*/%/*MOD! haha*/
@@ -74,7 +85,8 @@ ne with this mess!!!!!
 coming to save us!
 */
 			break;/* break the dawn */								
-		}while(1);	/* while bringing the light! */							
+		}while
+(1);	/* while bringing the light! */							
 
 	}
 	/* congratulations u have survived, input2

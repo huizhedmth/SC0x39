@@ -1,13 +1,13 @@
 %{
 /* C57.l				
  * 
- * flex source codes that define rules for generatint a lexer 
+ * flex source codes that define rules for generating a lexer 
  * for the C57 language
  *
  * author: Huizhe Li, Master Student, Dartmouth College
  *
- * the idea of handling string literal and performing
- * symbol-lookup are inspired by reading cscan.l 
+ * reference: the idea of handling string literal and performing
+ * symbol-lookup are borrowed from cscan.l
  */
 %}
 
@@ -21,8 +21,10 @@
 
 %x comment
 %x string
+
 	/* C- */
 white		[ \t\n]+
+space		[ \t\n]
 _keyword	else|if|int|return|void|while|for|do|double
 _symbol		"+"|"-"|"*"|"/"|"<"|"<="|">"|">="|"=="|"!="|"="|";"|","|"("|")"|"["|"]"|"{"|"}"|":"
 letter		[a-zA-Z]
@@ -58,6 +60,13 @@ keyword_ex	{keyword}|{static}|{struct}|{extern}
 symbol		{_symbol}|{inc}|{dec}|{mod}|{logical}
 symbol_ex	{symbol}|{addr}|{opeq}|{precmp}|{dot}
 
+	/* other */
+illegal		({digit})(_|{letter}|{digit})+
+
+
+
+
+
  /* rule section */
  /****************/
 %%
@@ -65,7 +74,7 @@ symbol_ex	{symbol}|{addr}|{opeq}|{precmp}|{dot}
 "/*"					BEGIN(comment);
 <comment>[^*]*				/* eat up characters that are not '*'s	 	*/	
 <comment>"*"+[^*/]			/* eat up '*'s not followed by '/' or '*'	*/
-<comment>"*"+"/"			BEGIN(INITIAL);	/* go back to normal state */
+<comment>"*"+"/"			BEGIN(INITIAL);	/* go back to normal state	*/
 
 \"           { BEGIN(string); }
 <string>\n   return OTHER;
@@ -81,8 +90,11 @@ symbol_ex	{symbol}|{addr}|{opeq}|{precmp}|{dot}
 {keyword_ex}				return KWLookup(yytext);
 {id}					return ID;
 {num}					return NUM;
+{illegal}				return ILLEGALID;
 {fnum}					return FNUM;
 {symbol_ex}				return SMBLookup(yytext);
+<<EOF>>					return 0;
+.					return OTHER;
 
  /* user code section */
  /****************/

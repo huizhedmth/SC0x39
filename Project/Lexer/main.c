@@ -4,7 +4,7 @@
  * as the filename of input file. 
  * Other cmd arguments are ignored.
  * The program exits if the specified file cannot be opened.
- * main() calls yylex() repeatedly and print tokens
+ * main() calls yylex() repeatedly and writes tokens to file
  * until EOF is found
  *
  * author: Huizhe Li, Master Student, Dartmouth College
@@ -22,6 +22,8 @@ extern char* yytext;
 char* typeLookup(int);
 
 int main(int argc, char** argv){
+
+	/* open files */
 	FILE* in = fopen(argv[1], "r");
 	if (in == NULL){
 		printf("ERROR: file not found. exit.\n");
@@ -34,7 +36,10 @@ int main(int argc, char** argv){
 		return -2;
 	}
 
+	/* set input file source for lexer */
 	yyset_in(in);
+
+	/* print types and tokens */
 	int ret;
 	char* type;
 	while( (ret=yylex()) != 0)
@@ -110,6 +115,7 @@ char* typeLookup(int token) {
 	{331, "NUM"},
 	{332, "FNUM"},
 	{333, "STRING"},
+	{334, "ILLEGALID"},
 	{340, "OTHER"}
  };
 
