@@ -33,7 +33,7 @@ $(TARGET).o: $(LANGUAGE).tab.c
 lex.yy.o: lex.yy.c
 	@$(CC) -o lex.yy.o -c lex.yy.c
 
-err.yy.o: err.yy.c
+error.yy.o: error.yy.c
 	@$(CC) -o err.yy.o -c err.yy.c
 
 lex.yy.c: $(FLEX_SOURCE) 

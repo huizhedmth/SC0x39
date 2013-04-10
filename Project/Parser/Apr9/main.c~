@@ -28,7 +28,5 @@ int main (int argc, char** argv)
 	int ret =  yyparse ();
 	if (ret == 0)
 		printf("succeeded parsing input. ret val = %d\n", ret);
-	else
-		printf("failed parsing input. ret val = %d\n", ret);
 	return ret;
 }

@@ -129,7 +129,7 @@ int KWLookup(char *s) {
 	{"extern", EXTERN},
 	{"default", DEFAULT},
 	{"case", CASE},
-	{"null", NIL}
+	{"null", NULL}
  };
 
   KWItem *kw;
