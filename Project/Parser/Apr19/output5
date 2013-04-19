@@ -1,0 +1,423 @@
+succeeded parsing input.
+ROOT 
+  FUNC_DECL 
+    FUNC_HEADER relax
+      PARAM 
+        TYPE int
+        ID u
+      PARAM 
+        TYPE int
+        ID v
+      PARAM 
+        TYPE double
+        ID w
+      PARAM 
+        TYPE double
+        ID d[]
+      PARAM 
+        TYPE int
+        ID pi[]
+    CMPD_STMT 
+      IF 
+        > 
+          ID d[]
+            ID v
+          + 
+            ID d[]
+              ID u
+            ID w
+        CMPD_STMT 
+          = 
+            ID d[]
+              ID v
+            + 
+              ID d[]
+                ID u
+              ID w
+          = 
+            ID pi[]
+              ID v
+            ID u
+  FUNC_DECL 
+    FUNC_HEADER initialize_single_source
+      PARAM 
+        TYPE double
+        ID d[]
+      PARAM 
+        TYPE int
+        ID pi[]
+      PARAM 
+        TYPE int
+        ID s
+      PARAM 
+        TYPE int
+        ID n
+    CMPD_STMT 
+      LOCAL_DECL 
+        VAR_DECL 
+          TYPE int
+          ID i
+      FOR_STMT 
+        = 
+          ID i
+          INTLIT 1
+        <= 
+          ID i
+          ID n
+        ++(pre) 
+          ID i
+        CMPD_STMT 
+          = 
+            ID d[]
+              ID i
+            DOUBLELIT 1000000000.000000
+          = 
+            ID pi[]
+              ID i
+            INTLIT 0
+      = 
+        ID d[]
+          ID s
+        DOUBLELIT 0.000000
+  FUNC_DECL 
+    FUNC_HEADER bellman_ford
+      PARAM 
+        TYPE int
+        ID first[]
+      PARAM 
+        TYPE int
+        ID node[]
+      PARAM 
+        TYPE int
+        ID next[]
+      PARAM 
+        TYPE double
+        ID w[]
+      PARAM 
+        TYPE double
+        ID d[]
+      PARAM 
+        TYPE int
+        ID pi[]
+      PARAM 
+        TYPE int
+        ID s
+      PARAM 
+        TYPE int
+        ID n
+    CMPD_STMT 
+      LOCAL_DECL 
+        VAR_DECL 
+          TYPE int
+          ID u
+          ID v
+          ID i
+          ID j
+      CALL n
+        ID d
+        ID pi
+        ID s
+        ID n
+      FOR_STMT 
+        = 
+          ID i
+          INTLIT 1
+        <= 
+          ID i
+          - 
+            ID n
+            INTLIT 1
+        ++(pre) 
+          ID i
+        CMPD_STMT 
+          FOR_STMT 
+            = 
+              ID u
+              INTLIT 1
+            <= 
+              ID u
+              ID n
+            ++(pre) 
+              ID u
+            CMPD_STMT 
+              = 
+                ID j
+                ID first[]
+                  ID u
+              WHILE_STMT	 
+                > 
+                  ID j
+                  INTLIT 0
+                CMPD_STMT 
+                  = 
+                    ID v
+                    ID node[]
+                      ID j
+                  CALL pi
+                    ID u
+                    ID v
+                    ID w[]
+                      ID j
+                    ID d
+                    ID pi
+                  = 
+                    ID j
+                    ID next[]
+                      ID j
+      FOR_STMT 
+        = 
+          ID u
+          INTLIT 1
+        <= 
+          ID u
+          ID n
+        ++(pre) 
+          ID u
+        CMPD_STMT 
+          = 
+            ID j
+            ID first[]
+              ID u
+          WHILE_STMT	 
+            > 
+              ID j
+              INTLIT 0
+            CMPD_STMT 
+              = 
+                ID v
+                ID node[]
+                  ID j
+              IF 
+                > 
+                  ID d[]
+                    ID v
+                  + 
+                    ID d[]
+                      ID u
+                    ID w[]
+                      ID j
+                RTN_STMT 
+                  INTLIT 0
+              = 
+                ID j
+                ID next[]
+                  ID j
+      RTN_STMT 
+        INTLIT 1
+  FUNC_DECL 
+    FUNC_HEADER main
+    CMPD_STMT 
+      LOCAL_DECL 
+        VAR_DECL 
+          TYPE int
+          ID first[]
+            INTLIT 6
+          ID node[]
+            INTLIT 11
+          ID next[]
+            INTLIT 11
+          ID pi[]
+            INTLIT 6
+        VAR_DECL 
+          TYPE double
+          ID w[]
+            INTLIT 11
+          ID d[]
+            INTLIT 6
+        VAR_DECL 
+          TYPE int
+          ID s
+        VAR_DECL 
+          TYPE int
+          ID i
+        VAR_DECL 
+          TYPE int
+          ID ok
+      = 
+        ID first[]
+          INTLIT 1
+        INTLIT 1
+      = 
+        ID first[]
+          INTLIT 2
+        INTLIT 3
+      = 
+        ID first[]
+          INTLIT 3
+        INTLIT 6
+      = 
+        ID first[]
+          INTLIT 4
+        INTLIT 7
+      = 
+        ID first[]
+          INTLIT 5
+        INTLIT 9
+      = 
+        ID node[]
+          INTLIT 1
+        INTLIT 2
+      = 
+        ID node[]
+          INTLIT 2
+        INTLIT 4
+      = 
+        ID node[]
+          INTLIT 3
+        INTLIT 3
+      = 
+        ID node[]
+          INTLIT 4
+        INTLIT 4
+      = 
+        ID node[]
+          INTLIT 5
+        INTLIT 5
+      = 
+        ID node[]
+          INTLIT 6
+        INTLIT 2
+      = 
+        ID node[]
+          INTLIT 7
+        INTLIT 3
+      = 
+        ID node[]
+          INTLIT 8
+        INTLIT 5
+      = 
+        ID node[]
+          INTLIT 9
+        INTLIT 1
+      = 
+        ID node[]
+          INTLIT 10
+        INTLIT 3
+      = 
+        ID w[]
+          INTLIT 1
+        DOUBLELIT 6.000000
+      = 
+        ID w[]
+          INTLIT 2
+        DOUBLELIT 7.000000
+      = 
+        ID w[]
+          INTLIT 3
+        DOUBLELIT 5.000000
+      = 
+        ID w[]
+          INTLIT 4
+        DOUBLELIT 8.000000
+      = 
+        ID w[]
+          INTLIT 5
+        - 
+          DOUBLELIT 4.000000
+      = 
+        ID w[]
+          INTLIT 6
+        - 
+          DOUBLELIT 2.000000
+      = 
+        ID w[]
+          INTLIT 7
+        - 
+          DOUBLELIT 3.000000
+      = 
+        ID w[]
+          INTLIT 8
+        DOUBLELIT 9.000000
+      = 
+        ID w[]
+          INTLIT 9
+        DOUBLELIT 2.000000
+      = 
+        ID w[]
+          INTLIT 10
+        DOUBLELIT 7.000000
+      = 
+        ID next[]
+          INTLIT 1
+        INTLIT 2
+      = 
+        ID next[]
+          INTLIT 2
+        INTLIT 0
+      = 
+        ID next[]
+          INTLIT 3
+        INTLIT 4
+      = 
+        ID next[]
+          INTLIT 4
+        INTLIT 5
+      = 
+        ID next[]
+          INTLIT 5
+        INTLIT 0
+      = 
+        ID next[]
+          INTLIT 6
+        INTLIT 0
+      = 
+        ID next[]
+          INTLIT 7
+        INTLIT 8
+      = 
+        ID next[]
+          INTLIT 8
+        INTLIT 0
+      = 
+        ID next[]
+          INTLIT 9
+        INTLIT 10
+      = 
+        ID next[]
+          INTLIT 10
+        INTLIT 0
+      PRINT_STMT 
+        STRINGIT Enter source node: 
+      READ_STMT 
+        ID s
+      = 
+        ID ok
+        CALL s
+          ID first
+          ID node
+          ID next
+          ID w
+          ID d
+          ID pi
+          ID s
+          INTLIT 5
+      PRINT_STMT 
+        STRINGIT bellman_ford returns 
+      PRINT_STMT 
+        ID ok
+      PRINT_STMT 
+        STRINGIT \n\n
+      FOR_STMT 
+        = 
+          ID i
+          INTLIT 1
+        <= 
+          ID i
+          INTLIT 5
+        ++(pre) 
+          ID i
+        CMPD_STMT 
+          PRINT_STMT 
+            ID i
+          PRINT_STMT 
+            STRINGIT : 
+          PRINT_STMT 
+            ID d[]
+              ID i
+          PRINT_STMT 
+            STRINGIT   
+          PRINT_STMT 
+            ID pi[]
+              ID i
+          PRINT_STMT 
+            STRINGIT \n

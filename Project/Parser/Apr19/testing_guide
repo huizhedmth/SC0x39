@@ -1,0 +1,41 @@
+/*
+ * testing_guide
+ *
+ * The current solution implements extra features according to the 
+ * minimum requirements for graduate students. 
+ *
+ * By Huizhe Li, Master Student, Dartmouth College
+ *
+ */
+
+/************* 1. How to run *************/
+$ make 
+$ ./parse input*.c
+
+The generated syntax tree will be printed on screen.
+
+
+/************* 2. Input files ************/
+Note: see comments in each file for details.
+
+"input1.c" is a general test case that verifies legal program can be correctly parsed. This case contains all features currently supported.
+"input2.c" focuses on nested loops, switch-statements and condition-statements.
+"input3.c" tests function prototypes, function calls and variable declarations(including arrays).
+"input4.c" and "input5.c" are exactly the sample C57 programs given on course homepage. They can be successfully parsed.
+"input6.c" shows error handling power (which is weak for now...) of the current solution.
+
+/************* 3. Error handling *********/
+The parser simply stops when encountered the first syntax error and saves the line number where it occurs.
+
+/************* 4. Known loose-ends *************/
+1. const modifier
+C language allows declarations like:
+const;
+const const int int const int /* or more of them... */ identifier;
+But this solution only supports 0 or 1 const modifier, appearing before or after type specifier. 
+
+2. break, case, continue and default statement
+These statements can not appear everywhere. However, this constraint is not enabled, but is left to semantic analysis.
+
+3. function prototypes
+Identifiers are not necessary in a function prototype, but they are in a function definition. However, the current solution allows identifiers to be omitted even in a function definition. This problem is also left to semantic analysis.

@@ -1,0 +1,64 @@
+succeeded parsing input.
+ROOT 
+  FUNC_DECL 
+    FUNC_HEADER main
+    CMPD_STMT 
+      LOCAL_DECL 
+        VAR_DECL 
+          TYPE int
+          ID layer1
+          ID layer2
+          ID layer3
+          ID layer4
+      WHILE_STMT	 
+        ID layer1
+        CMPD_STMT 
+          ID layer1
+          IF 
+            INTLIT 1
+            CONTINUE_STMT 
+          FOR_STMT 
+            BOZO 
+            BOZO 
+            ++(pre) 
+              ID i
+            CMPD_STMT 
+              ID layer2
+              IFELSE 
+                INTLIT 1
+                CONTINUE_STMT 
+                BREAK_STMT 
+              WHILE_STMT	 
+                > 
+                  ID bigger
+                  ID smaller
+                CMPD_STMT 
+                  ID layer3
+                  SWITCH_STMT 
+                    CMPD_STMT 
+                      CASE_STMT 
+                      (post)++ 
+                        ID i
+                      (post)-- 
+                        ID i
+                      BREAK_STMT 
+                      CASE_STMT 
+                      BREAK_STMT 
+                      CASE_STMT 
+                      PRINT_STMT 
+                        STRINGIT yeah~~~
+                      BREAK_STMT 
+                      DEFAULT_STMT 
+                      WHILE_STMT	 
+                        INTLIT 1
+                        CMPD_STMT 
+                          ID layer4
+                      BREAK_STMT 
+      IF 
+        INTLIT 1
+        IF 
+          INTLIT 1
+          IFELSE 
+            INTLIT 1
+            EMPTY_STMT 
+            EMPTY_STMT 
