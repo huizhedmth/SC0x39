@@ -564,9 +564,12 @@ char *yytext;
 int lineNumber = 1;
 
 #define MAXTOKENLENGTH 201
+#define MAXSTRLENGTH 201
 
 char savedIdText[MAXTOKENLENGTH];
+char savedKwText[MAXTOKENLENGTH];
 char savedLiteralText[MAXTOKENLENGTH];
+char savedStrText[MAXSTRLENGTH];
 
 
 /* C- */
@@ -575,7 +578,7 @@ char savedLiteralText[MAXTOKENLENGTH];
 /* other */
 /* rule section */
 /****************/
-#line 579 "lex.yy.c"
+#line 582 "lex.yy.c"
 
 #define INITIAL 0
 #define comment 1
@@ -759,10 +762,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 85 "C57.l"
+#line 88 "C57.l"
 
 
-#line 766 "lex.yy.c"
+#line 769 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -853,127 +856,129 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 87 "C57.l"
+#line 90 "C57.l"
 BEGIN(comment);
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 88 "C57.l"
+#line 91 "C57.l"
 lineNumber++;	
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 89 "C57.l"
+#line 92 "C57.l"
 /* eat up characters that are not '*'s	 	*/	
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 90 "C57.l"
+#line 93 "C57.l"
 /* eat up '*'s not followed by '/' or '*'	*/
 	YY_BREAK
 case YY_STATE_EOF(comment):
-#line 91 "C57.l"
+#line 94 "C57.l"
 {fprintf(stderr, "error: EOF in comment\n");return -1;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 92 "C57.l"
+#line 95 "C57.l"
 BEGIN(INITIAL);	/* go back to normal state	*/
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 94 "C57.l"
+#line 97 "C57.l"
 { BEGIN(string); }
 	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 95 "C57.l"
+#line 98 "C57.l"
 return OTHER;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 96 "C57.l"
+#line 99 "C57.l"
 { yymore(); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 97 "C57.l"
+#line 100 "C57.l"
 {
   BEGIN(INITIAL);			/* go back to normal state */
   yytext[--yyleng] = '\0';		/* remove the trailing double-quote */
+  strncpy(savedStrText, yytext, MAXSTRLENGTH-1);
   return STRING;
  }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 102 "C57.l"
+#line 106 "C57.l"
 { yymore(); }
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 104 "C57.l"
+#line 108 "C57.l"
 lineNumber++;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 105 "C57.l"
+#line 109 "C57.l"
 /* ignore white spaces */
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 106 "C57.l"
-return KWLookup(yytext);
+#line 110 "C57.l"
+{	strncpy(savedKwText, yytext, MAXTOKENLENGTH-1);
+						return KWLookup(yytext);}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 107 "C57.l"
+#line 112 "C57.l"
 {	strncpy(savedIdText, yytext, MAXTOKENLENGTH-1);
     						return ID;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 109 "C57.l"
+#line 114 "C57.l"
 {	strncpy(savedLiteralText, yytext, MAXTOKENLENGTH-1);
 						return NUM;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 111 "C57.l"
+#line 116 "C57.l"
 return ILLEGALID;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 112 "C57.l"
+#line 117 "C57.l"
 return FNUM;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 113 "C57.l"
+#line 118 "C57.l"
 return SMBLookup(yytext);
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(string):
-#line 114 "C57.l"
+#line 119 "C57.l"
 return 0;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 115 "C57.l"
+#line 120 "C57.l"
 return OTHER;
 	YY_BREAK
 /* user code section */
 /****************/
 case 20:
 YY_RULE_SETUP
-#line 119 "C57.l"
+#line 124 "C57.l"
 ECHO;
 	YY_BREAK
-#line 977 "lex.yy.c"
+#line 982 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1968,7 +1973,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 119 "C57.l"
+#line 124 "C57.l"
 
 
 

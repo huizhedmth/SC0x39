@@ -17,13 +17,17 @@
  /**********************/
 %{
 #include "C57.tab.h"
+#include <string.h>
 
 int lineNumber = 1;
 
 #define MAXTOKENLENGTH 201
+#define MAXSTRLENGTH 201
 
 char savedIdText[MAXTOKENLENGTH];
+char savedKwText[MAXTOKENLENGTH];
 char savedLiteralText[MAXTOKENLENGTH];
+char savedSTRText[MAXSTRLENGTH];
 %}
 
 %x comment
@@ -87,8 +91,8 @@ illegal		({digit})(_|{letter}|{digit})+
 <comment>{newline}			lineNumber++;	
 <comment>[^*]*				/* eat up characters that are not '*'s	 	*/	
 <comment>"*"+[^*/]			/* eat up '*'s not followed by '/' or '*'	*/
-<comment><<EOF>>			{fprintf(stderr, "error: EOF in comment\n");return -1;}
-<comment>"*"+"/"			BEGIN(INITIAL);	/* go back to normal state	*/
+<comment><<EOF>>				{fprintf(stderr, "error: EOF in comment\n");return -1;}
+<comment>"*"+"/"				BEGIN(INITIAL);	/* go back to normal state	*/
 
 \"           { BEGIN(string); }
 <string>\n   return OTHER;
@@ -96,13 +100,15 @@ illegal		({digit})(_|{letter}|{digit})+
 <string>\"   {
   BEGIN(INITIAL);			/* go back to normal state */
   yytext[--yyleng] = '\0';		/* remove the trailing double-quote */
+  strncpy(savedStrText, yytext, MAXSTRLENGTH-1);
   return STRING;
  }
 <string>.    { yymore(); }
 
 {newline}				lineNumber++;
 {white}					/* ignore white spaces */
-{keyword_ex}				return KWLookup(yytext);
+{keyword_ex}				{	strncpy(savedKwText, yytext, MAXTOKENLENGTH-1);
+						return KWLookup(yytext);}
 {id}					{	strncpy(savedIdText, yytext, MAXTOKENLENGTH-1);
     						return ID;}
 {num}					{	strncpy(savedLiteralText, yytext, MAXTOKENLENGTH-1);

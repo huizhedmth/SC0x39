@@ -1,16 +1,23 @@
 
-int a;
-const int b[A+B];
-const int c = 2; 
+int main(){
 
-int f1();
-int f2(int a);
-int f3(int a, double b);
-
-
-int main(void)
-{
-	int n;
+	for(;; ){
+		i++;
+		a[i] = i;
+	}
+	while(1){
+		a = 1;
+	}
 	return 0;
+	return;
+
+	read a[c+d];
+	print "\"Hello, world!\"";
+	f(a,b,1);
+	do{}while(1);
+	sizeof(a+b+c);
+	sizeof(int);
+	sizeof(double);
 }
+
 

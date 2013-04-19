@@ -1,4 +1,3 @@
-int f(){}
 
 int g();
 
@@ -6,7 +5,7 @@ int a;
 const int b;
 
 
-void g(void)
+int g(void)
 {
 	
 	int a;

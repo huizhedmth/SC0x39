@@ -21,8 +21,30 @@ typedef enum { ROOT,
 	       OP_EQUALS,
 	       IF_STMT, IF_ELSE_STMT,
 	       IDENT,
-	       INT_LITERAL, DOUBLE_LITERAL,
-		VAR_DECL
+	       INT_LITERAL, DOUBLE_LITERAL, STRING_LITERAL,
+		FUNC_DECL, FUNC_PROTO, FUNC_HEADER, 
+		FORMAL_PARAM,
+		TYPE,
+		VAR_DECL,
+		CMPD_STMT,
+		LOCAL_DECL,
+		EXPR_STMT,
+		WHILE_STMT,		
+		DO_WHILE_STMT,
+		FOR_STMT,
+		RTN_STMT,	
+		READ_STMT,
+		PRINT_STMT,
+		BREAK_STMT,
+		CONTINUE_STMT,		
+		SWITCH_STMT,
+		CASE_STMT,
+		DEFAULT_STMT,
+		OP_MOD,OP_LESS,OP_LESSEQ,OP_GRTER,OP_GRTEREQ,OP_NEQ,OP_AND,OP_OR, OP_NOT, OP_UMINUS,
+		INC_PRE, DEC_PRE, INC_POST, DEC_POST,
+		BOZO,
+		CALL,
+		SIZEOF
 		} ast_node_type;
 
 /* Structure for nodes of the abstract syntax tree.  Uses the
@@ -36,7 +58,7 @@ struct ast_node_struct {
   union {
     char * string;		/* for ID */
     int int_value;		/* for INT_LITERAL */
-    double double_value;	/* for DOUBLE_LITERAL */
+    double double_value;		/* for DOUBLE_LITERAL */
   } value;
 };
 

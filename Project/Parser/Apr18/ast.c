@@ -61,11 +61,47 @@ static struct token_lookup token_table[] = {
   { "==" },
   { "IF"},
   { "IFELSE" },
-  { "IDENT" },
+  { "ID" },
   { "INTLIT"},
   { "DOUBLELIT" },
-  { "VAR_DECL" },
+  { "STRINGIT" },
+  { "FUNC_DECL" },
   { "FUNC_PROTO" },
+  { "FUNC_HEADER" },
+  { "PARAM" },
+  { "TYPE" },
+  { "VAR_DECL" },
+  { "CMPD_STMT" },
+  { "LOCAL_DECL" },
+  { "EXPR_STMT" },
+  { "WHILE_STMT	" },	
+  { "DO_WHILE_STMT" },
+  { "FOR_STMT" },
+  { "RTN_STMT" },	
+  { "READ_STMT" },
+  { "PRINT_STMT" },
+  { "BREAK_STMT" },
+  { "CONTINUE_STMT" },		
+  { "SWITCH_STMT" },
+  { "CASE_STMT" },
+  { "DEFAULT_STMT" },
+  { "%" },
+  { "<" },
+  { "<=" },
+  { ">" },
+  { ">=" },
+  { "!=" },
+  { "&&" },
+  { "||" },
+  { "!"  },
+  { "-" },
+  { "++(pre)" },
+  { "--(pre)" },
+  { "(post)++" },
+  { "(post)--" },
+  { "BOZO" },
+  { "CALL" },
+  { "SIZEOF" },
   { NULL }
 };
 
@@ -91,7 +127,11 @@ void print_ast(ast_node root, int depth) {
 
   /* Print attributes specific to node types. */
   switch (root->node_type) {
-  case VAR_DECL:
+  case STRING_LITERAL:
+  case IDENT:
+  case FUNC_HEADER:
+  case CALL:
+  case TYPE:
     printf("%s", root->value.string);
     break;
 
