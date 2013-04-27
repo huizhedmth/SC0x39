@@ -1,0 +1,52 @@
+# main.c
+#
+# build the parser and the symbol table
+#
+# By Huizhe Li, Master Student, Dartmouth College
+#
+
+
+LANGUAGE = C57
+TARGET = parse
+FLEX_SOURCE = $(LANGUAGE).l
+BISON_SOURCE = $(LANGUAGE).y
+
+CC = gcc
+FLEX = flex
+BISON = bison
+
+
+target: $(TARGET)
+
+$(TARGET): main.o parser.o lex.yy.o err.yy.o ast.o idt.o symtab.o
+	@$(CC) -o $(TARGET) main.o parser.o lex.yy.o err.yy.o ast.o idt.o symtab.o -lfl
+
+symtab.o: symtab.c 
+	@$(CC) -o symtab.o -c symtab.c
+
+main.o: main.c
+	@$(CC) -o main.o -c main.c
+
+ast.o:	ast.c 
+	@$(CC) -o ast.o -c ast.c
+
+idt.o:	idt.c 
+	@$(CC) -o idt.o -c idt.c
+
+parser.o: $(LANGUAGE).tab.c
+	@$(CC) -o parser.o -c $(LANGUAGE).tab.c
+
+lex.yy.o: lex.yy.c
+	@$(CC) -o lex.yy.o -c lex.yy.c
+
+err.yy.o: err.yy.c
+	@$(CC) -o err.yy.o -c err.yy.c
+
+lex.yy.c: $(FLEX_SOURCE) 
+	@$(FLEX) $(FLEX_SOURCE)
+
+$(LANGUAGE).tab.c: $(BISON_SOURCE)
+	@$(BISON) -d $(BISON_SOURCE)
+
+clean:
+	@rm -f err.yy.o lex.yy.o parser.o main.o ast.o idt.o $(TARGET) $(LANGUAGE).tab.c $(LANGUAGE).tab.h lex.yy.c symtab.o
