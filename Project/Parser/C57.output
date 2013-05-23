@@ -1,0 +1,1782 @@
+Terminals which are not used
+
+   ELSE
+   IF
+   RETURN
+   WHILE
+   FOR
+   DO
+   READ
+   PRINT
+   BREAK
+   CONTINUE
+   SWITCH
+   CASE
+   DEFAULT
+   SIZEOF
+   CONST
+   STRING
+   OTHER
+
+
+State 17 conflicts: 1 shift/reduce
+State 18 conflicts: 1 shift/reduce
+State 32 conflicts: 1 shift/reduce
+State 33 conflicts: 1 shift/reduce
+State 34 conflicts: 1 shift/reduce
+State 47 conflicts: 1 shift/reduce
+State 51 conflicts: 1 shift/reduce
+State 52 conflicts: 1 shift/reduce
+State 53 conflicts: 1 shift/reduce
+State 54 conflicts: 1 shift/reduce
+State 55 conflicts: 1 shift/reduce
+State 56 conflicts: 1 shift/reduce
+State 57 conflicts: 1 shift/reduce
+State 58 conflicts: 1 shift/reduce
+State 59 conflicts: 1 shift/reduce
+State 60 conflicts: 1 shift/reduce
+State 61 conflicts: 1 shift/reduce
+State 62 conflicts: 1 shift/reduce
+State 63 conflicts: 1 shift/reduce
+State 66 conflicts: 1 shift/reduce
+State 95 conflicts: 2 shift/reduce
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: declaration_list
+
+    2 declaration_list: declaration_list declaration
+    3                 | declaration
+
+    4 declaration: var_declaration
+    5            | func_declaration
+
+    6 var_declaration: var_type_specifier var_decl_list ';'
+
+    7 var_type_specifier: INT
+    8                   | DOUBLE
+
+    9 var_decl_list: var_decl_list ',' var_decl
+   10              | var_decl
+
+   11 var_decl: ID
+   12         | ID '=' expression
+   13         | ID '[' expression ']'
+
+   14 func_declaration: var_type_specifier ID '(' formal_params ')' compound_statement
+   15                 | VOID ID '(' formal_params ')' compound_statement
+
+   16 formal_params: formal_list
+   17              | VOID
+   18              | /* empty */
+
+   19 formal_list: formal_list ',' formal_param
+   20            | formal_param
+
+   21 formal_param: var_type_specifier ID
+   22             | var_type_specifier ID '[' ']'
+
+   23 compound_statement: '{' local_declarations statement_list '}'
+
+   24 local_declarations: local_declarations var_declaration
+   25                   | /* empty */
+
+   26 statement_list: statement_list statement
+   27               | /* empty */
+
+   28 statement: expression_statement
+   29          | compound_statement
+
+   30 expression_statement: expression ';'
+   31                     | ';'
+
+   32 expression: var '=' expression
+   33           | r_value
+
+   34 var: ID
+   35    | ID '[' expression ']'
+
+   36 r_value: expression '+' expression
+   37        | expression '-' expression
+   38        | expression '*' expression
+   39        | expression '/' expression
+   40        | expression '%' expression
+   41        | expression '<' expression
+   42        | expression LESSEQ expression
+   43        | expression '>' expression
+   44        | expression GRTEREQ expression
+   45        | expression EQ expression
+   46        | expression NEQ expression
+   47        | expression AND expression
+   48        | expression OR expression
+   49        | '!' expression
+   50        | '-' expression
+   51        | var
+   52        | INC var
+   53        | DEC var
+   54        | var INC
+   55        | var DEC
+   56        | '(' expression ')'
+   57        | NUM
+   58        | FNUM
+   59        | /* empty */
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'!' (33) 49
+'%' (37) 40
+'(' (40) 14 15 56
+')' (41) 14 15 56
+'*' (42) 38
+'+' (43) 36
+',' (44) 9 19
+'-' (45) 37 50
+'/' (47) 39
+';' (59) 6 30 31
+'<' (60) 41
+'=' (61) 12 32
+'>' (62) 43
+'[' (91) 13 22 35
+']' (93) 13 22 35
+'{' (123) 23
+'}' (125) 23
+error (256)
+ELSE (258)
+IF (259)
+INT (260) 7
+RETURN (261)
+VOID (262) 15 17
+WHILE (263)
+FOR (264)
+DO (265)
+DOUBLE (266) 8
+READ (267)
+PRINT (268)
+BREAK (269)
+CONTINUE (270)
+SWITCH (271)
+CASE (272)
+DEFAULT (273)
+SIZEOF (274)
+CONST (275)
+EQ (276) 45
+NEQ (277) 46
+INC (278) 52 54
+DEC (279) 53 55
+AND (280) 47
+OR (281) 48
+LESSEQ (282) 42
+GRTEREQ (283) 44
+ID (284) 11 12 13 14 15 21 22 34 35
+NUM (285) 57
+FNUM (286) 58
+STRING (287)
+OTHER (288)
+DECPRE (289)
+INCPRE (290)
+UMINUS (291)
+DECPOST (292)
+INCPOST (293)
+
+
+Nonterminals, with rules where they appear
+
+$accept (56)
+    on left: 0
+program (57)
+    on left: 1, on right: 0
+declaration_list (58)
+    on left: 2 3, on right: 1 2
+declaration (59)
+    on left: 4 5, on right: 2 3
+var_declaration (60)
+    on left: 6, on right: 4 24
+var_type_specifier (61)
+    on left: 7 8, on right: 6 14 21 22
+var_decl_list (62)
+    on left: 9 10, on right: 6 9
+var_decl (63)
+    on left: 11 12 13, on right: 9 10
+func_declaration (64)
+    on left: 14 15, on right: 5
+formal_params (65)
+    on left: 16 17 18, on right: 14 15
+formal_list (66)
+    on left: 19 20, on right: 16 19
+formal_param (67)
+    on left: 21 22, on right: 19 20
+compound_statement (68)
+    on left: 23, on right: 14 15 29
+local_declarations (69)
+    on left: 24 25, on right: 23 24
+statement_list (70)
+    on left: 26 27, on right: 23 26
+statement (71)
+    on left: 28 29, on right: 26
+expression_statement (72)
+    on left: 30 31, on right: 28
+expression (73)
+    on left: 32 33, on right: 12 13 30 32 35 36 37 38 39 40 41 42 43
+    44 45 46 47 48 49 50 56
+var (74)
+    on left: 34 35, on right: 32 51 52 53 54 55
+r_value (75)
+    on left: 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53
+    54 55 56 57 58 59, on right: 33
+
+
+state 0
+
+    0 $accept: . program $end
+
+    INT     shift, and go to state 1
+    VOID    shift, and go to state 2
+    DOUBLE  shift, and go to state 3
+
+    program             go to state 4
+    declaration_list    go to state 5
+    declaration         go to state 6
+    var_declaration     go to state 7
+    var_type_specifier  go to state 8
+    func_declaration    go to state 9
+
+
+state 1
+
+    7 var_type_specifier: INT .
+
+    $default  reduce using rule 7 (var_type_specifier)
+
+
+state 2
+
+   15 func_declaration: VOID . ID '(' formal_params ')' compound_statement
+
+    ID  shift, and go to state 10
+
+
+state 3
+
+    8 var_type_specifier: DOUBLE .
+
+    $default  reduce using rule 8 (var_type_specifier)
+
+
+state 4
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 11
+
+
+state 5
+
+    1 program: declaration_list .
+    2 declaration_list: declaration_list . declaration
+
+    INT     shift, and go to state 1
+    VOID    shift, and go to state 2
+    DOUBLE  shift, and go to state 3
+
+    $default  reduce using rule 1 (program)
+
+    declaration         go to state 12
+    var_declaration     go to state 7
+    var_type_specifier  go to state 8
+    func_declaration    go to state 9
+
+
+state 6
+
+    3 declaration_list: declaration .
+
+    $default  reduce using rule 3 (declaration_list)
+
+
+state 7
+
+    4 declaration: var_declaration .
+
+    $default  reduce using rule 4 (declaration)
+
+
+state 8
+
+    6 var_declaration: var_type_specifier . var_decl_list ';'
+   14 func_declaration: var_type_specifier . ID '(' formal_params ')' compound_statement
+
+    ID  shift, and go to state 13
+
+    var_decl_list  go to state 14
+    var_decl       go to state 15
+
+
+state 9
+
+    5 declaration: func_declaration .
+
+    $default  reduce using rule 5 (declaration)
+
+
+state 10
+
+   15 func_declaration: VOID ID . '(' formal_params ')' compound_statement
+
+    '('  shift, and go to state 16
+
+
+state 11
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+state 12
+
+    2 declaration_list: declaration_list declaration .
+
+    $default  reduce using rule 2 (declaration_list)
+
+
+state 13
+
+   11 var_decl: ID .
+   12         | ID . '=' expression
+   13         | ID . '[' expression ']'
+   14 func_declaration: var_type_specifier ID . '(' formal_params ')' compound_statement
+
+    '='  shift, and go to state 17
+    '['  shift, and go to state 18
+    '('  shift, and go to state 19
+
+    $default  reduce using rule 11 (var_decl)
+
+
+state 14
+
+    6 var_declaration: var_type_specifier var_decl_list . ';'
+    9 var_decl_list: var_decl_list . ',' var_decl
+
+    ','  shift, and go to state 20
+    ';'  shift, and go to state 21
+
+
+state 15
+
+   10 var_decl_list: var_decl .
+
+    $default  reduce using rule 10 (var_decl_list)
+
+
+state 16
+
+   15 func_declaration: VOID ID '(' . formal_params ')' compound_statement
+
+    INT     shift, and go to state 1
+    VOID    shift, and go to state 22
+    DOUBLE  shift, and go to state 3
+
+    $default  reduce using rule 18 (formal_params)
+
+    var_type_specifier  go to state 23
+    formal_params       go to state 24
+    formal_list         go to state 25
+    formal_param        go to state 26
+
+
+state 17
+
+   12 var_decl: ID '=' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 35
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 18
+
+   13 var_decl: ID '[' . expression ']'
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 38
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 19
+
+   14 func_declaration: var_type_specifier ID '(' . formal_params ')' compound_statement
+
+    INT     shift, and go to state 1
+    VOID    shift, and go to state 22
+    DOUBLE  shift, and go to state 3
+
+    $default  reduce using rule 18 (formal_params)
+
+    var_type_specifier  go to state 23
+    formal_params       go to state 39
+    formal_list         go to state 25
+    formal_param        go to state 26
+
+
+state 20
+
+    9 var_decl_list: var_decl_list ',' . var_decl
+
+    ID  shift, and go to state 40
+
+    var_decl  go to state 41
+
+
+state 21
+
+    6 var_declaration: var_type_specifier var_decl_list ';' .
+
+    $default  reduce using rule 6 (var_declaration)
+
+
+state 22
+
+   17 formal_params: VOID .
+
+    $default  reduce using rule 17 (formal_params)
+
+
+state 23
+
+   21 formal_param: var_type_specifier . ID
+   22             | var_type_specifier . ID '[' ']'
+
+    ID  shift, and go to state 42
+
+
+state 24
+
+   15 func_declaration: VOID ID '(' formal_params . ')' compound_statement
+
+    ')'  shift, and go to state 43
+
+
+state 25
+
+   16 formal_params: formal_list .
+   19 formal_list: formal_list . ',' formal_param
+
+    ','  shift, and go to state 44
+
+    $default  reduce using rule 16 (formal_params)
+
+
+state 26
+
+   20 formal_list: formal_param .
+
+    $default  reduce using rule 20 (formal_list)
+
+
+state 27
+
+   52 r_value: INC . var
+
+    ID  shift, and go to state 29
+
+    var  go to state 45
+
+
+state 28
+
+   53 r_value: DEC . var
+
+    ID  shift, and go to state 29
+
+    var  go to state 46
+
+
+state 29
+
+   34 var: ID .
+   35    | ID . '[' expression ']'
+
+    '['  shift, and go to state 47
+
+    $default  reduce using rule 34 (var)
+
+
+state 30
+
+   57 r_value: NUM .
+
+    $default  reduce using rule 57 (r_value)
+
+
+state 31
+
+   58 r_value: FNUM .
+
+    $default  reduce using rule 58 (r_value)
+
+
+state 32
+
+   50 r_value: '-' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 48
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 33
+
+   49 r_value: '!' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 49
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 34
+
+   56 r_value: '(' . expression ')'
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 50
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 35
+
+   12 var_decl: ID '=' expression .
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    EQ       shift, and go to state 51
+    NEQ      shift, and go to state 52
+    AND      shift, and go to state 53
+    OR       shift, and go to state 54
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+
+    $default  reduce using rule 12 (var_decl)
+
+
+state 36
+
+   32 expression: var . '=' expression
+   51 r_value: var .
+   54        | var . INC
+   55        | var . DEC
+
+    INC  shift, and go to state 64
+    DEC  shift, and go to state 65
+    '='  shift, and go to state 66
+
+    $default  reduce using rule 51 (r_value)
+
+
+state 37
+
+   33 expression: r_value .
+
+    $default  reduce using rule 33 (expression)
+
+
+state 38
+
+   13 var_decl: ID '[' expression . ']'
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    EQ       shift, and go to state 51
+    NEQ      shift, and go to state 52
+    AND      shift, and go to state 53
+    OR       shift, and go to state 54
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+    ']'      shift, and go to state 67
+
+
+state 39
+
+   14 func_declaration: var_type_specifier ID '(' formal_params . ')' compound_statement
+
+    ')'  shift, and go to state 68
+
+
+state 40
+
+   11 var_decl: ID .
+   12         | ID . '=' expression
+   13         | ID . '[' expression ']'
+
+    '='  shift, and go to state 17
+    '['  shift, and go to state 18
+
+    $default  reduce using rule 11 (var_decl)
+
+
+state 41
+
+    9 var_decl_list: var_decl_list ',' var_decl .
+
+    $default  reduce using rule 9 (var_decl_list)
+
+
+state 42
+
+   21 formal_param: var_type_specifier ID .
+   22             | var_type_specifier ID . '[' ']'
+
+    '['  shift, and go to state 69
+
+    $default  reduce using rule 21 (formal_param)
+
+
+state 43
+
+   15 func_declaration: VOID ID '(' formal_params ')' . compound_statement
+
+    '{'  shift, and go to state 70
+
+    compound_statement  go to state 71
+
+
+state 44
+
+   19 formal_list: formal_list ',' . formal_param
+
+    INT     shift, and go to state 1
+    DOUBLE  shift, and go to state 3
+
+    var_type_specifier  go to state 23
+    formal_param        go to state 72
+
+
+state 45
+
+   52 r_value: INC var .
+
+    $default  reduce using rule 52 (r_value)
+
+
+state 46
+
+   53 r_value: DEC var .
+
+    $default  reduce using rule 53 (r_value)
+
+
+state 47
+
+   35 var: ID '[' . expression ']'
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 73
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 48
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+   50        | '-' expression .
+
+    $default  reduce using rule 50 (r_value)
+
+
+state 49
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+   49        | '!' expression .
+
+    $default  reduce using rule 49 (r_value)
+
+
+state 50
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+   56        | '(' expression . ')'
+
+    EQ       shift, and go to state 51
+    NEQ      shift, and go to state 52
+    AND      shift, and go to state 53
+    OR       shift, and go to state 54
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+    ')'      shift, and go to state 74
+
+
+state 51
+
+   45 r_value: expression EQ . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 75
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 52
+
+   46 r_value: expression NEQ . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 76
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 53
+
+   47 r_value: expression AND . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 77
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 54
+
+   48 r_value: expression OR . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 78
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 55
+
+   42 r_value: expression LESSEQ . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 79
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 56
+
+   44 r_value: expression GRTEREQ . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 80
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 57
+
+   41 r_value: expression '<' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 81
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 58
+
+   43 r_value: expression '>' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 82
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 59
+
+   36 r_value: expression '+' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 83
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 60
+
+   37 r_value: expression '-' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 84
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 61
+
+   38 r_value: expression '*' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 85
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 62
+
+   39 r_value: expression '/' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 86
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 63
+
+   40 r_value: expression '%' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 87
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 64
+
+   54 r_value: var INC .
+
+    $default  reduce using rule 54 (r_value)
+
+
+state 65
+
+   55 r_value: var DEC .
+
+    $default  reduce using rule 55 (r_value)
+
+
+state 66
+
+   32 expression: var '=' . expression
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    '('   shift, and go to state 34
+
+    '-'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    expression  go to state 88
+    var         go to state 36
+    r_value     go to state 37
+
+
+state 67
+
+   13 var_decl: ID '[' expression ']' .
+
+    $default  reduce using rule 13 (var_decl)
+
+
+state 68
+
+   14 func_declaration: var_type_specifier ID '(' formal_params ')' . compound_statement
+
+    '{'  shift, and go to state 70
+
+    compound_statement  go to state 89
+
+
+state 69
+
+   22 formal_param: var_type_specifier ID '[' . ']'
+
+    ']'  shift, and go to state 90
+
+
+state 70
+
+   23 compound_statement: '{' . local_declarations statement_list '}'
+
+    $default  reduce using rule 25 (local_declarations)
+
+    local_declarations  go to state 91
+
+
+state 71
+
+   15 func_declaration: VOID ID '(' formal_params ')' compound_statement .
+
+    $default  reduce using rule 15 (func_declaration)
+
+
+state 72
+
+   19 formal_list: formal_list ',' formal_param .
+
+    $default  reduce using rule 19 (formal_list)
+
+
+state 73
+
+   35 var: ID '[' expression . ']'
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    EQ       shift, and go to state 51
+    NEQ      shift, and go to state 52
+    AND      shift, and go to state 53
+    OR       shift, and go to state 54
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+    ']'      shift, and go to state 92
+
+
+state 74
+
+   56 r_value: '(' expression ')' .
+
+    $default  reduce using rule 56 (r_value)
+
+
+state 75
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   45        | expression EQ expression .
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+
+    $default  reduce using rule 45 (r_value)
+
+
+state 76
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   46        | expression NEQ expression .
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+
+    $default  reduce using rule 46 (r_value)
+
+
+state 77
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   47        | expression AND expression .
+   48        | expression . OR expression
+
+    EQ       shift, and go to state 51
+    NEQ      shift, and go to state 52
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+
+    $default  reduce using rule 47 (r_value)
+
+
+state 78
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+   48        | expression OR expression .
+
+    EQ       shift, and go to state 51
+    NEQ      shift, and go to state 52
+    AND      shift, and go to state 53
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+
+    $default  reduce using rule 48 (r_value)
+
+
+state 79
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   42        | expression LESSEQ expression .
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    '+'  shift, and go to state 59
+    '-'  shift, and go to state 60
+    '*'  shift, and go to state 61
+    '/'  shift, and go to state 62
+    '%'  shift, and go to state 63
+
+    $default  reduce using rule 42 (r_value)
+
+
+state 80
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   44        | expression GRTEREQ expression .
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    '+'  shift, and go to state 59
+    '-'  shift, and go to state 60
+    '*'  shift, and go to state 61
+    '/'  shift, and go to state 62
+    '%'  shift, and go to state 63
+
+    $default  reduce using rule 44 (r_value)
+
+
+state 81
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   41        | expression '<' expression .
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    '+'  shift, and go to state 59
+    '-'  shift, and go to state 60
+    '*'  shift, and go to state 61
+    '/'  shift, and go to state 62
+    '%'  shift, and go to state 63
+
+    $default  reduce using rule 41 (r_value)
+
+
+state 82
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   43        | expression '>' expression .
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    '+'  shift, and go to state 59
+    '-'  shift, and go to state 60
+    '*'  shift, and go to state 61
+    '/'  shift, and go to state 62
+    '%'  shift, and go to state 63
+
+    $default  reduce using rule 43 (r_value)
+
+
+state 83
+
+   36 r_value: expression . '+' expression
+   36        | expression '+' expression .
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    '*'  shift, and go to state 61
+    '/'  shift, and go to state 62
+    '%'  shift, and go to state 63
+
+    $default  reduce using rule 36 (r_value)
+
+
+state 84
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   37        | expression '-' expression .
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    '*'  shift, and go to state 61
+    '/'  shift, and go to state 62
+    '%'  shift, and go to state 63
+
+    $default  reduce using rule 37 (r_value)
+
+
+state 85
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   38        | expression '*' expression .
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    $default  reduce using rule 38 (r_value)
+
+
+state 86
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   39        | expression '/' expression .
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    $default  reduce using rule 39 (r_value)
+
+
+state 87
+
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   40        | expression '%' expression .
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    $default  reduce using rule 40 (r_value)
+
+
+state 88
+
+   32 expression: var '=' expression .
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    EQ       shift, and go to state 51
+    NEQ      shift, and go to state 52
+    AND      shift, and go to state 53
+    OR       shift, and go to state 54
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+
+    $default  reduce using rule 32 (expression)
+
+
+state 89
+
+   14 func_declaration: var_type_specifier ID '(' formal_params ')' compound_statement .
+
+    $default  reduce using rule 14 (func_declaration)
+
+
+state 90
+
+   22 formal_param: var_type_specifier ID '[' ']' .
+
+    $default  reduce using rule 22 (formal_param)
+
+
+state 91
+
+   23 compound_statement: '{' local_declarations . statement_list '}'
+   24 local_declarations: local_declarations . var_declaration
+
+    INT     shift, and go to state 1
+    DOUBLE  shift, and go to state 3
+
+    $default  reduce using rule 27 (statement_list)
+
+    var_declaration     go to state 93
+    var_type_specifier  go to state 94
+    statement_list      go to state 95
+
+
+state 92
+
+   35 var: ID '[' expression ']' .
+
+    $default  reduce using rule 35 (var)
+
+
+state 93
+
+   24 local_declarations: local_declarations var_declaration .
+
+    $default  reduce using rule 24 (local_declarations)
+
+
+state 94
+
+    6 var_declaration: var_type_specifier . var_decl_list ';'
+
+    ID  shift, and go to state 40
+
+    var_decl_list  go to state 14
+    var_decl       go to state 15
+
+
+state 95
+
+   23 compound_statement: '{' local_declarations statement_list . '}'
+   26 statement_list: statement_list . statement
+
+    INC   shift, and go to state 27
+    DEC   shift, and go to state 28
+    ID    shift, and go to state 29
+    NUM   shift, and go to state 30
+    FNUM  shift, and go to state 31
+    '-'   shift, and go to state 32
+    '!'   shift, and go to state 33
+    ';'   shift, and go to state 96
+    '('   shift, and go to state 34
+    '{'   shift, and go to state 70
+    '}'   shift, and go to state 97
+
+    '-'       [reduce using rule 59 (r_value)]
+    ';'       [reduce using rule 59 (r_value)]
+    $default  reduce using rule 59 (r_value)
+
+    compound_statement    go to state 98
+    statement             go to state 99
+    expression_statement  go to state 100
+    expression            go to state 101
+    var                   go to state 36
+    r_value               go to state 37
+
+
+state 96
+
+   31 expression_statement: ';' .
+
+    $default  reduce using rule 31 (expression_statement)
+
+
+state 97
+
+   23 compound_statement: '{' local_declarations statement_list '}' .
+
+    $default  reduce using rule 23 (compound_statement)
+
+
+state 98
+
+   29 statement: compound_statement .
+
+    $default  reduce using rule 29 (statement)
+
+
+state 99
+
+   26 statement_list: statement_list statement .
+
+    $default  reduce using rule 26 (statement_list)
+
+
+state 100
+
+   28 statement: expression_statement .
+
+    $default  reduce using rule 28 (statement)
+
+
+state 101
+
+   30 expression_statement: expression . ';'
+   36 r_value: expression . '+' expression
+   37        | expression . '-' expression
+   38        | expression . '*' expression
+   39        | expression . '/' expression
+   40        | expression . '%' expression
+   41        | expression . '<' expression
+   42        | expression . LESSEQ expression
+   43        | expression . '>' expression
+   44        | expression . GRTEREQ expression
+   45        | expression . EQ expression
+   46        | expression . NEQ expression
+   47        | expression . AND expression
+   48        | expression . OR expression
+
+    EQ       shift, and go to state 51
+    NEQ      shift, and go to state 52
+    AND      shift, and go to state 53
+    OR       shift, and go to state 54
+    LESSEQ   shift, and go to state 55
+    GRTEREQ  shift, and go to state 56
+    '<'      shift, and go to state 57
+    '>'      shift, and go to state 58
+    '+'      shift, and go to state 59
+    '-'      shift, and go to state 60
+    '*'      shift, and go to state 61
+    '/'      shift, and go to state 62
+    '%'      shift, and go to state 63
+    ';'      shift, and go to state 102
+
+
+state 102
+
+   30 expression_statement: expression ';' .
+
+    $default  reduce using rule 30 (expression_statement)

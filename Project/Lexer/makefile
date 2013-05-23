@@ -6,7 +6,7 @@
 
 
 
-TARGET = test 
+TARGET = scan
 LEXER = lex.yy.c
 CC = gcc
 SOURCE = C57.l

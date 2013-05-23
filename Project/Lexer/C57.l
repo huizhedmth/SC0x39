@@ -1,190 +1,152 @@
 %{
-/* C57.l				
+/* C57.l
+ *
+ * This file contains flex source code that defines rules for generating
+ * a lexer for the C57 language.
+ *
+ * 05/16/2013
+ *
+ * Modified based on its first version and comments by THC, Dartmouth college.
+ *
+ * Currently it recognizes tokens just enough to meet the minimum requirements
+ * for graduate students.
  * 
- * flex source codes that define rules for generating a lexer 
- * for the C57 language
+ * Reference: the methods of processing string literal and keyword-lookup came from
+ * cscan.l, THC, Dartmouth college.
  *
- * author: Huizhe Li, Master Student, Dartmouth College
- *
- * reference: the idea of handling string literal and performing
- * symbol-lookup are borrowed from cscan.l
+ * by Huizhe Li, Master Student, Dartmouth College
  */
 %}
 
 
-
- /* definition section */
- /**********************/
 %{
 #include "token.h"
+#include <string.h>
+int KWLookup(char* s);
+int SYMBLookup(char* s);
 %}
 
-%x comment
 %x string
 
-	/* C- */
 white		[ \t\n]+
 space		[ \t\n]
-_keyword	else|if|int|return|void|while|for|do|double
-_symbol		"+"|"-"|"*"|"/"|"<"|"<="|">"|">="|"=="|"!="|"="|";"|","|"("|")"|"["|"]"|"{"|"}"|":"
 letter		[a-zA-Z]
 digit		[0-9]
 id		(_|{letter})(_|{letter}|{digit})*
+sngl_char_symb	"+"|"-"|"*"|"/"|"<"|">"|"="|";"|","|"("|")"|"["|"]"|"{"|"}"|"%"|"!"|":"
+dbl_char_symb	"<="|">="|"=="|"!="|"++"|"--"|"&&"|"||"
 num		{digit}+
-
-	/* C57 */
 fnum		{num}"."{num}|"."{num}
-inc		"++"
-dec		"--"
-mod		"%"
-logical		"&&"|"||"|"!"
-break		break
-continue	continue
-sizeof		sizeof
-const		const
-switch		switch
-default		default
-case		case
 
-	/* extra credit */
-static		static
-addr		"&"
-opeq		"+="|"-="|"*="|"/="
-struct		struct
-precmp		"#"
-extern		extern
-dot		"."		
-
-keyword		{_keyword}|{break}|{continue}|{sizeof}|{const}|{switch}|{default}
-keyword_ex	{keyword}|{static}|{struct}|{extern}
-symbol		{_symbol}|{inc}|{dec}|{mod}|{logical}
-symbol_ex	{symbol}|{addr}|{opeq}|{precmp}|{dot}
-
-	/* other */
 illegal		({digit})(_|{letter}|{digit})+
 
-
-
-
-
  /* rule section */
- /****************/
 %%
+"/""*"          {
+                  int prevChar = '\0', thisChar;
+		  for ( ; ; ) {
+		    if ((thisChar = input()) == EOF) {
+		      fprintf(stderr, "EOF in comment\n");
+		      return 0;
+		    }
+		    else if (thisChar == '/' && prevChar == '*')
+		      break;
+		    else {
+		      if (thisChar == '\n') /* lineNumber++ */;
+		      prevChar = thisChar;
+		    }
+		  }
+                }
 
-"/*"					BEGIN(comment);
-<comment>[^*]*				/* eat up characters that are not '*'s	 	*/	
-<comment>"*"+[^*/]			/* eat up '*'s not followed by '/' or '*'	*/
-<comment>"*"+"/"			BEGIN(INITIAL);	/* go back to normal state	*/
 
-\"           { BEGIN(string); }
-<string>\n   return OTHER;
-<string>\\\" { yymore(); }
-<string>\"   {
+\"          	 { BEGIN(string); }
+<string>\n 	  return OTHER;
+<string>\\\"	 { yymore(); }
+<string>\"   	 {
   BEGIN(INITIAL);			/* go back to normal state */
   yytext[--yyleng] = '\0';		/* remove the trailing double-quote */
   return STRING;
  }
 <string>.    { yymore(); }
 
-{white}					/* ignore white spaces */
-{keyword_ex}				return KWLookup(yytext);
-{id}					return ID;
-{num}					return NUM;
-{illegal}				return ILLEGALID;
-{fnum}					return FNUM;
-{symbol_ex}				return SMBLookup(yytext);
-<<EOF>>					return 0;
-.					return OTHER;
+{white}			{}/* ignore white spaces */
+{id}			{return KWLookup(yytext);}	/* may return a keyword or token ID */
+{sngl_char_symb} 	{return (int)yytext[0];}		/* return ASCII code directly */
+{dbl_char_symb}		{return SYMBLookup(yytext);}	
+{num}			{return NUM;}
+{fnum}			{return FNUM;}
+{illegal}		{return OTHER;}
+<<EOF>>			{return 0;}
 
- /* user code section */
- /****************/
+.			{return OTHER;}
+
+
+
+
+ /* user code */
 %%
 
-int KWLookup(char *s) {
+int KWLookup(char* s)
+{
   typedef struct KWItem {
-    char *keyword;
+    char* keyword;
     int token;
   } KWItem;
 
   static KWItem keywords[] = {
- 	{"else", ELSE},
-	{"if", IF},
-	{"int", INT},
-	{"return", RETURN},
-	{"void", VOID},
-	{"while", WHILE},
-	{"for", FOR},
-	{"do", DO},
-	{"double", DOUBLE},
-	{"break", BREAK},
-	{"continue", CONTINUE},
-	{"sizeof", SIZEOF},
-	{"const", CONST},
-	{"switch", SWITCH},
-	{"static", STATIC},
-	{"struct", STRUCT},
-	{"extern", EXTERN},
-	{"default", DEFAULT},
-	{"case", CASE}
- };
+    {"if", IF},
+    {"else", ELSE},
+    {"int", INT},
+    {"return", RETURN},
+    {"void", VOID},
+    {"while", WHILE},
+    {"for", FOR},
+    {"do", DO},
+    {"double", DOUBLE},
+    {"read", READ},
+    {"print", PRINT},
+    {"break", BREAK},
+    {"continue", CONTINUE},
+    {"switch", SWITCH},
+    {"case", CASE},
+    {"default", DEFAULT},
+    {"sizeof", SIZEOF},
+    {"const", CONST},
+    {"place_holder", ID}
+  };
 
-  KWItem *kw;
+  int table_length = 19;
+  keywords[table_length-1].keyword = s;
+  KWItem* kw;
 
-  for (kw = keywords; strcmp(kw->keyword, s) != 0; kw++)
+  for (kw = keywords; strcmp(kw->keyword, s)!=0; kw++)
     ;
-
+ 
   return kw->token;
 }
 
-int SMBLookup(char *s) {
-  typedef struct SMBItem {
-    char *symbol;
+int SYMBLookup(char* s)
+{
+  typedef struct SYMBItem {
+    char* symbol;
     int token;
-  } SMBItem;
+  } SYMBItem;
 
-  static SMBItem symbols[] = {
- 	{"+", PLUS},
-	{"-", MINUS},
-	{"*", STAR},
-	{"/", DIV},
-	{"<", LESS},
-	{"<=", LESSEQ},
-	{">", GRTER},
-	{">=", GRTEREQ},
-	{"==", EQ},
-	{"!=", NEQ},
-	{"=", ASSIGN},
-	{";", SEMICOLON},
-	{",", COMMA},
-	{"(", LBRKT},
-	{")", RBRKT},
-	{"[", LSQRBRKT},
-	{"]", RSQRBRKT},
-	{"{", LCLYBRKT},
-	{"}", RCLYBRKT},
-	{"++", INC},
-	{"--", DEC},
-	{"%", MOD},
-	{"&&", AND},
-	{"||", OR},
-	{"!", NOT},
-	{"+=", PLUSEQ},
-	{"-=",  MINUSEQ},
-	{"*=", MULEQ},
-	{"/=", DIVEQ},
-	{"#", PRECMP},
-	{"&", ADDR},
-	{".", DOT},
-	{":", COLON}
-	
- };
+  static SYMBItem symbols[] = {
+    {"<=", LESSEQ},
+    {">=", GRTEREQ},
+    {"==", EQ},
+    {"!=", NEQ},
+    {"++", INC},
+    {"--", DEC},
+    {"&&", AND},
+    {"||", OR}
+  };
 
-  SMBItem *symb;
+  SYMBItem* symbol;
 
-  for (symb = symbols; strcmp(symb->symbol, s) != 0; symb++)
+  for (symbol = symbols; strcmp(symbol->symbol, s)!=0; symbol++) /* guaranteed to be found */
     ;
 
-  return symb->token;
+  return symbol->token;
 }
-
-

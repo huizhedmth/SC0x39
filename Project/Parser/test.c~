@@ -1,0 +1,62 @@
+void f(const int ,int, double[], const double[]);
+void g(const int a, int b, double c[], const double d[]);
+
+int main(const int d[], const double f, int b[])
+{
+  double a[3];
+  const int b, c;
+  double c;
+
+  /* statement-list */
+
+  a = 5;
+  a = a + 3*!b&&c;
+
+  b[3]++;
+  ++c;
+  --c[a+b];
+
+  g(a, b, c, d);
+
+  switch(a = a+b*!c){
+  case 1:
+    break;
+  case 2:
+    print "hello, world!\n";
+    print a+b*c;
+    continue;
+  default:
+    a = 1;
+  }
+
+  x = sizeof(int);
+  x = sizeof(double);
+  x = sizeof(a+b*!c++);
+  
+  read z;
+  return;      
+  return a+b*!c++;
+
+
+  if(a)
+    ;
+  if(a = a+b*!c){
+  }
+  while(1){
+    x = 0;
+    switch(a){
+    case 1:
+      break;
+    default:
+      break;
+    }
+  }
+
+  do{
+    print "do";
+  }while(a+b>c);
+
+  for(i = i; i < 10; i++){
+    print i;
+  }
+}

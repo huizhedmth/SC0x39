@@ -8,10 +8,14 @@
 #include <string.h>
 #include <stdio.h>
 #include "symtab.h"
-#include "ast.h"
 
 #define NOHASHSLOT -1
 
+static int g_var_sn = 0;	/* current "serial number" for id's */
+static int g_func_sn = 0;	/* current function scope */
+static int g_addr = 100;	/* temp var */
+static int g_func_addr = 1000;	/* temp var */
+extern int hzDEBUG;
 /*
  * Functions for symnodes.
  */
@@ -109,13 +113,15 @@ static symnode lookup_symhashtable(symhashtable hashtable, char *name,
 
 /* Insert a new entry into a symhashtable, but only if it is not
    already present. */
-static symnode insert_into_symhashtable(symhashtable hashtable, char *name) {
+static symnode insert_into_symhashtable(symhashtable hashtable, char *name, int sn) {
   int slot = hashPJW(name, hashtable->size);
   symnode node = lookup_symhashtable(hashtable, name, slot);
 
   if (node == NULL) {
     node = create_symnode(name);
     node->next = hashtable->table[slot];
+    // add by Huizhe Li
+    node->sn = sn;
     hashtable->table[slot] = node;
   }
 
@@ -151,7 +157,7 @@ void destroy_symboltable(symboltable symtab) {
 /* Insert an entry into the innermost scope of symbol table.  First
    make sure it's not already in that scope.  Return a pointer to the
    entry. */
-symnode insert_into_symboltable(symboltable symtab, char *name) {
+symnode insert_into_symboltable(symboltable symtab, char *name, int sn) {
   if (symtab->inner_scope == NULL) {
     fprintf(stderr, "Error: inserting into an empty symbol table\n");
     exit(1);
@@ -160,7 +166,7 @@ symnode insert_into_symboltable(symboltable symtab, char *name) {
   symnode node = lookup_symhashtable(symtab->inner_scope, name, NOHASHSLOT);
 
   if (node == NULL)
-    node = insert_into_symhashtable(symtab->inner_scope, name);
+    node = insert_into_symhashtable(symtab->inner_scope, name, sn);
 
   return node;
 }
@@ -197,99 +203,392 @@ void leave_scope(symboltable symtab) {
   destroy_symhashtable(hashtable);
 }
 
-/* Set the scope of a given parse-tree node */
-static void set_node_scope(ast_node node, int node_scope){
-	switch(node->node_type){
-	case CMPD_STMT:
-		node->scope = node_scope + 1;
-	//	printf("CMPD!\n");
-		break;
-	default:
-		node->scope = node_scope;	
-		break;
-	}
-}
+/* ------------------------------ by Huizhe Li -----------------------------*/
 
-/* Set the scopes of all children of a given parse-tree node */
-static void set_children_scope(ast_node node, int node_scope){
-	if (node->left_child != NULL){
-		set_node_scope(node->left_child, node_scope);
-		ast_node tree_node = node->left_child->right_sibling;
-		while(tree_node != NULL){	// visit all the node's right siblings 
-			set_node_scope(tree_node, node_scope);
-			tree_node = tree_node->right_sibling;
-		}
-	}
-}
-
-/* Change current scope of the symtab */ 
-static int change_symtab_scope(ast_node node, int cur_scope){
-	int rt;
-
-	if (cur_scope == node->scope){
-		rt = cur_scope;
-	}else if (cur_scope > node->scope){	// time to leave
-		rt = cur_scope - 1;
-	}else{					// cur_scope < root->scope, time to enter
-		rt = cur_scope + 1;
-	}
-
-	return rt;
-}
-
-/* Build a symbol_table from a parse-tree 
- * via a pre-order traversal 
- */
-void build_symtab(symboltable symtab, ast_node root, int cur_scope)
+/* Create an empty flat table */
+flat_symtab create_flat_symtab()
 {
-	int node_scope = root->scope;
-	printf("node_scope: %d\n", node_scope);
-	// Set child nodes' scope
-	set_children_scope(root, node_scope);
+  flat_symtab var_table = (flat_symtab)malloc(sizeof(struct flat_symtab));
+  var_table->size = 0;
+  return var_table;
+}
 
-	// Change current symtab scope.
-	cur_scope = change_symtab_scope(root, cur_scope);
-	printf("current scope: %d\n", cur_scope);
-	// Modify symtab
-	switch(root->node_type){
-	case VAR_DECL:
-		//printf("current scope: %d ", cur_scope);
-		printf("found a var decl!\n");
-		break;	
-	case FUNC_DECL:
-		//printf("current scope: %d ", cur_scope);
-		printf("found a fun decl!\n");
-		break;
-	case OP_ASSIGN:
-	//	printf("current scope: %d ", cur_scope);
-		printf("found an assignment!\n");
-		break;
-	default:	
-		break;
-	}
+/* Change current scope of the tracking symbol table */
+static void change_current_scope(symboltable tracking_table, ast_node root)
+{
+  while (tracking_table->inner_scope->level != root->scope){
+    if (tracking_table->inner_scope->level < root->scope)
+      enter_scope(tracking_table);
+    else
+      leave_scope(tracking_table);
+  }
+  
+  if(root->node_type == CMPD_STMT 
+     //&& root->scope > 0
+     ){
+    leave_scope(tracking_table);
+    enter_scope(tracking_table);
+    }
+}
 
-	// traverse the node's subtree in pre-order 
-	if (root->left_child != NULL){
-		build_symtab(symtab, root->left_child, cur_scope);	// visit the node's left child 
-		ast_node tree_node = root->left_child->right_sibling;
-		while(tree_node != NULL){	// visit all the node's right siblings 
-			build_symtab(symtab, tree_node, cur_scope);
-			tree_node = tree_node->right_sibling;
-		}
-	}
+/* Convert from string literal to storage_class */
+static storage_class convert_to_sclass(char* str)
+{
+  if (strcmp(str, "CONST") == 0)
+    return STORAGE_CONST;
+  else
+    return STORAGE_NORMAL;
+}
+
+/* Convert from string literal to data_type */
+static data_type convert_to_dtype(char* str)
+{
+  if (strcmp(str, "INT") == 0)
+    return TYPE_INT;
+  else if (strcmp(str, "INT ARRAY") == 0)
+    return TYPE_INT_ARRAY;
+  else if (strcmp(str, "DOUBLE") == 0)
+    return TYPE_DOUBLE;
+  else if (strcmp(str, "DOUBLE ARRAY") == 0)
+    return TYPE_DOUBLE_ARRAY;
+  else
+    return TYPE_VOID;
+}
+
+/* Create an entry */
+static symtab_entry create_symtab_entry(char* id, int lineNumber, data_type dtype, storage_class sclass, int addr, int sn)
+{
+  symtab_entry entry = (symtab_entry)malloc(sizeof(struct symtab_entry));
+  entry->id = strdup(id);
+  entry->lineNumber = lineNumber;
+  entry->dtype = dtype;
+  entry->sclass = sclass;
+  entry->addr = addr;
+  entry->sn = sn;
+  return entry;
+}
+
+/* Insert an entry into the flat symbol table, return 0 on success */
+static int insert_flat_table_entry(flat_symtab table, symtab_entry entry)
+{
+  if (table->size == MAXTABLEN)
+    return -1;
+
+  table->entries[table->size++] = entry;
+  return 0;
+}
+
+/* Perform type checking on the given syntax tree, return zero on success, non-zero otherwise */
+int type_check(ast_node root)
+{
 }
 
 
 
+/* retrieve an entry pointer from the flat symbol table */
+static symtab_entry retrieve_entry(flat_symtab var_table, int sn)
+{
+  return var_table->entries[sn];
+}
 
+/* Look up a function id in the given function table.
+ * Return NULL if not found, otherwise return the pointer to the entry
+ */
+static func_entry lookup_in_functable(func_table function_table, char* name)
+{
+  int i;
+  func_entry* entries = function_table->entries;
+  for (i = 0; i < function_table->size; i++){
+    if (strcmp(name, entries[i]->id) == 0)
+      return entries[i];
+  }
+  return NULL;
+}
 
+/* Create an empty function table */
+func_table create_functable()
+{
+  func_table table = (func_table)malloc(sizeof(struct func_table));
+  table->size = 0;
+  return table;
+}
 
+/* Create a func_entry */
+static func_entry create_func_entry(char* name, data_type dtype, int argc, char* args[], 
+				    data_type types[], storage_class sclasses[], int addr[], int sn, int f_addr)
+{
+  func_entry entry = (func_entry)malloc(sizeof(struct func_entry));
+  int i;
+  
+  entry->id = strdup(name);
+  entry->dtype = dtype;
+  entry->argc = argc;
+  for(i = 0; i < argc; i++){
+    entry->args[i] = strdup(args[i]);
+    entry->types[i] = types[i];
+    entry->sclasses[i] = sclasses[i];
+    entry->addr[i] = addr[i];
+  }
+  entry->sn = sn;
+  entry->func_addr = f_addr;
+  return entry;
+}
 
+/* Insert a function entry into function table */
+static int insert_func_table(func_table function_table, func_entry entry)
+{
+  if(function_table->size == MAXTABLEN){
+    printf(" --- error --- function table full.\n");
+    return -1;
+  }
 
+  function_table->entries[function_table->size++] = entry;
+  return 0;
+}
 
+/* Fetch info for the id as a param of the current function
+ * return pointer to the entry, or NULL if not found
+ * The third param indicates the index for the param found,
+ * or undefined if NULL returnd.
+ */
+symtab_entry retrieve_param(func_table function_table, char* name)
+{
+  func_entry entry = function_table->entries[g_func_sn-1];	// entry containing current function
+  int i;
+  for(i = 0; i < entry->argc; i++){
+    if (strcmp(entry->args[i], name)==0){	
+      return create_symtab_entry("", 0, entry->types[i], entry->sclasses[i], entry->addr[i], -1);
+    }
+  }
+  return NULL;
+}
+  
+/* Build the flat symbol table */
+void build_symtab(symboltable tracking_table, flat_symtab var_table, func_table function_table, ast_node root)
+{
+  char* name;
+  symnode sym_node;
 
+  // for flat table entry
+  storage_class sclass;
+  data_type dtype;
+  int addr;
+  int lineNumber;
+  symtab_entry entry;
+  int rc;
 
+  // for lookup_in_symboltable
+  int scope_level;
 
+  // for function tables
+  func_entry fEntry;
+  
+  // recursively build symtab
+  ast_node child;
+  ast_node temp;
+  int argc;
+  char* args[MAXARGS];
+  data_type types[MAXARGS];
+  storage_class sclasses[MAXARGS];
+  int f_addr[MAXARGS];
 
+  // Change current scope 
+  change_current_scope(tracking_table, root);
 
+  // Act according to node type 
+  switch(root->node_type){
+  case VAR_DECL:
+    name = root->left_child->right_sibling->right_sibling->value.string;	// get the id's name
 
+    // first look-up in the closest function's symtab, see whether the id is an argument
+    // mark: TODO
+
+    // look up the id in var_table. insert on NULL, report duplicate definition error otherwise
+    sym_node = lookup_symhashtable(tracking_table->inner_scope, name, NOHASHSLOT);    
+    if (sym_node == NULL){ // id not found in the current level
+      /* assign sn for this id and mark it visited */
+      root->left_child->right_sibling->right_sibling->sn = g_var_sn;
+      root->left_child->right_sibling->right_sibling->flag_visited = 1;
+
+      // insert a new entry into the tracking table
+      sym_node = insert_into_symboltable(tracking_table, name, g_var_sn);
+
+      // insert a new entry into the flat table
+      sclass = convert_to_sclass(root->left_child->value.string);
+      dtype = convert_to_dtype(root->left_child->right_sibling->value.string);
+      addr = g_addr++; // mark: put it here for now;
+      lineNumber = root->left_child->right_sibling->right_sibling->lineNumber;
+
+      entry = create_symtab_entry(name, lineNumber, dtype, sclass, addr, g_var_sn);	// create entry
+
+      rc =  insert_flat_table_entry(var_table, entry);	// insert the entry into flat table
+
+      if (rc != 0){
+	printf(" --- error --- var_table full. Abort.\n");
+	return;
+      }
+      g_var_sn++;	/* since new id */
+    }else{	// redefinition error
+      printf(" --- error --- duplicate var definition at line %d. Symtab may behave abnormally.\n", 
+	     root->left_child->right_sibling->right_sibling->lineNumber);
+    }
+    break;
+    
+  case IDENTIFIER:
+    if (root->flag_visited == 1)  break;	// do what it says
+    name = root->value.string;	// get the id's name
+    
+    // first lookup in func_tab, see whether it's an argument
+    entry = retrieve_param(function_table, name);	// fetch info for the id as a param of the current function
+    if (entry != NULL){	// the name is an argument in current function scope
+      root->sn = g_var_sn;
+      // build the entry
+      entry->id = strdup(name);
+      entry->lineNumber = root->lineNumber;
+      entry->sn = g_var_sn;
+      
+      // insert the entry
+      rc = insert_flat_table_entry(var_table, entry);
+      if (rc != 0){		
+	printf(" --- error --- var_table full. Abort.\n");
+	return;
+      }
+      g_var_sn++;
+      break;
+    }
+    // look up the id in the tracking table, report use without definition error on NULL
+    // otherwise insert a new entry into var_table
+    sym_node = lookup_in_symboltable(tracking_table, name, &scope_level);
+    
+    if (sym_node == NULL){
+      printf(" --- error --- variable use without definition at line %d. Symtab may behave abnormally.\n", root->lineNumber);
+    }else{
+      // look up this id and retrieve info from var_table
+      if (hzDEBUG)
+	printf("== debug == retrieving entry with sn = %d\n", sym_node->sn);
+      root->sn = g_var_sn;
+      entry = retrieve_entry(var_table, sym_node->sn);
+      sclass = entry->sclass;
+      dtype = entry->dtype;
+      addr = entry->addr;
+      lineNumber = root->lineNumber;
+
+      // build entry and insert
+      if (hzDEBUG)
+	printf("== debug == creating new entry\n");
+      entry = create_symtab_entry(name, lineNumber, dtype, sclass, addr, g_var_sn);
+
+      // insert the entry
+      rc = insert_flat_table_entry(var_table, entry);
+      if (rc != 0){		
+	printf(" --- error --- var_table full. Abort.\n");
+	return;
+      }
+      g_var_sn++;	// since new id 
+    }
+    break;
+
+  case FUNC_DECL:
+    temp = root->left_child->left_child->right_sibling;	// point to IDENTIFER node
+    name = temp->value.string;	// get func id
+    // look up the id in func_table
+    fEntry = lookup_in_functable(function_table, name);
+    if (fEntry != NULL){	// duplicate definition
+      printf(" --- error --- duplicate function definition at line %d\n. Function table may behave abnormally", root->lineNumber);
+    }else{	// insert this function into function table
+      // set visited mark and sn
+      temp->flag_visited = 1;	// point to IDENTIFER node
+      temp->sn = g_func_sn;
+
+      // build entry
+      dtype = convert_to_dtype(root->left_child->left_child->value.string);
+      temp = root->left_child->right_sibling;	// point to the PARAMS node
+      if (temp != NULL) { 
+	argc = 0;
+	if (temp->left_child->node_type != TYPE){	// param-list not empty
+	  for(temp = temp->left_child; temp != NULL; temp = temp->right_sibling){
+	    args[argc] = temp->left_child->right_sibling->right_sibling->value.string;
+	    types[argc] = convert_to_dtype(temp->left_child->right_sibling->value.string);
+	    sclasses[argc] = convert_to_sclass(temp->left_child->value.string);
+	    f_addr[argc] = g_addr++;
+	    argc++;
+	  }
+	}
+	fEntry = create_func_entry(name, dtype, argc, args, types, sclasses, f_addr, g_func_sn, g_func_addr);
+
+	// insert entry
+	rc = insert_func_table(function_table, fEntry);
+	if (rc != 0){		
+	  printf(" --- error --- var_table full. Abort.\n");
+	  return;
+	} 
+      }
+      g_func_sn++;
+      g_func_addr++;
+    }
+    break;
+      
+  case CALL:
+    root->left_child->flag_visited = 1;
+    name = root->left_child->value.string;
+    fEntry = lookup_in_functable(function_table, name);
+    if (fEntry == NULL){
+      printf(" --- error --- function definition not found. Undefined behavior!\n");
+    }else{	// insert id into flat table
+      root->left_child->sn = g_var_sn;
+      addr = fEntry->func_addr;
+      dtype = fEntry->dtype;
+      lineNumber = root->left_child->lineNumber;
+
+      // build entry and insert
+      if (hzDEBUG)
+	printf("== debug == creating new entry\n");
+      entry = create_symtab_entry(name, lineNumber, dtype, -1, addr, g_var_sn);
+
+      // insert the entry
+      rc = insert_flat_table_entry(var_table, entry);
+      if (rc != 0){		
+	printf(" --- error --- var_table full. Abort.\n");
+	return;
+      }
+      g_var_sn++;	// since new id 
+    }
+    break;
+  default:
+    break;
+  }
+
+  // Pre-order traverse the subtree
+  for (child = root->left_child; child != NULL; child = child->right_sibling)
+    build_symtab(tracking_table, var_table, function_table, child);
+}
+
+/* Print the flat table, for debug mode only */
+void print_flat_table(flat_symtab var_table)
+{
+  int i;
+  for (i = 0; i < var_table->size; i++){
+    printf("-- entry -- id: %s\tline number: %d  \tdata type: %d\taddress: %d\tsn: %d\n",
+	   var_table->entries[i]->id, var_table->entries[i]->lineNumber, 
+	   var_table->entries[i]->dtype, var_table->entries[i]->addr, var_table->entries[i]->sn);
+  }
+  printf("\n");
+}
+
+/* Print the function table */
+void print_func_table(func_table function_table)
+{
+  int i;
+  int j;
+  func_entry entry;
+  for (i = 0; i < function_table->size; i++){
+    entry = function_table->entries[i];
+    printf("-- func_entry -- id: %s\tret type: %d\tsn: %d\tfunc_addr: %d\n", entry->id, entry->dtype, entry->sn, entry->func_addr);
+    for (j = 0; j < entry->argc; j++){
+      printf("     param%d:  id: %s\ttype: %d\tsclass: %d\taddr: %d\n", j, 
+	     entry->args[j], entry->types[j], entry->sclasses[j], entry->addr[j]);
+    }
+    printf("\n");
+  }
+  printf("\n");
+}

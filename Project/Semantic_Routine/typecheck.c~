@@ -1,0 +1,175 @@
+/* typecheck.c
+ *
+ * Implememtation of the type checking function
+ * 
+ * by Huizhe Li, Master Student, Dartmouth College.
+ */
+
+#include "typecheck.h"
+#include "ast.h"	/* node types */
+#include "symtab.h"	/* data types */
+
+#include <stdlib.h>
+#include <stdio.h>
+
+extern int tcDEBUG;
+
+/* Perform type checking on the given syntax tree "root".
+ * Must be provided with the two corresponding symboltables generated beforehand 
+ * Return zero if no error found, non-zero otherwise.
+ */
+int type_check(flat_symtab var_table, func_table function_table, ast_node root)
+{
+  ast_node temp;
+  ast_node id;	// current ID node involved
+  data_type dtype;
+
+  switch(root->node_type){
+  case VAR_DECL:
+    id = root->left_child->right_sibling->right_sibling;
+    // check if "ID = expression" or "ID[expression]"
+    temp = root->left_child->right_sibling->right_sibling->right_sibling;
+    if (temp != NULL){	// yes it is
+      dtype = convert_to_dtype(root->left_child->right_sibling->value.string);
+      if (dtype == TYPE_INT || dtype == TYPE_DOUBLE){	// "ID = expression"
+	if(det_expr_type(var_table, function_table, temp) == TYPE_ERROR)
+	  return -1;
+      }else{	// "ID[expression]"
+	dtype = det_expr_type(var_table, function_table, temp);
+	if (dtype != TYPE_INT){
+	  printf("--- error --- array indexed by non-integer at line %d.\n", id->lineNumber);
+	  return -1;
+	}
+      }
+    }
+    // now we are happy at this node
+    break;
+    
+  default:
+    break;
+  }
+
+  // recursively check child nodes
+  for (temp = root->left_child; temp != NULL; temp = temp->right_sibling){
+    if (type_check(var_table, function_table, temp)!=0)
+      return -1;
+  }
+  
+  // sub tree passed type checking
+  return 0;
+}
+
+/* Determine date type of the given expression */
+data_type det_expr_type(flat_symtab var_table, func_table function_table, ast_node root)
+{
+  data_type t1 = TYPE_VOID, t2 = TYPE_VOID;
+  if(tcDEBUG) printf(" -- trace -- entered det_expr_type\n");
+  if(root == NULL)
+    printf("wtf\n");
+  switch(root->node_type){
+  case INT_LITERAL:
+    if(tcDEBUG) printf(" -- trace -- int literal\n");
+    return TYPE_INT;
+
+  case DOUBLE_LITERAL:
+    if(tcDEBUG) printf(" -- trace -- double literal\n");
+    return TYPE_DOUBLE;
+
+  case IDENTIFIER:     
+    // check if array
+    if (root->left_child == NULL){     	// not array
+      if(tcDEBUG) printf(" -- trace -- ID\n");
+         return get_dtype_from_symtab(var_table, root->sn);
+    }
+    else{				// array
+      if(tcDEBUG) printf(" -- trace -- ID array\n");
+      if (det_expr_type(var_table, function_table, root->left_child) != TYPE_INT){
+	return TYPE_ERROR;
+      }
+      return get_dtype_from_symtab(var_table, root->sn) - 1;	// see how data_type is defined
+    }
+  case OP_MINUS:
+    if(tcDEBUG) printf(" -- trace -- uminus\n");
+    if (root->left_child->right_sibling == NULL)	// UMINUS
+      return det_expr_type(var_table, function_table, root->left_child);
+  case OP_PLUS:
+  case OP_DIVIDE:
+  case OP_TIMES:
+    if(tcDEBUG) printf(" -- trace -- binary op\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ((t1 == TYPE_VOID) || (t2 == TYPE_VOID)){
+      return TYPE_ERROR;
+    }else{
+      if ((t1 == TYPE_DOUBLE) || (t2 == TYPE_DOUBLE))
+	return TYPE_DOUBLE;
+      else
+	return TYPE_INT;
+    }
+
+  case OP_MOD:
+    if(tcDEBUG) printf(" -- trace -- mod\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ((t1 != TYPE_INT) || (t2 != TYPE_INT))
+      return TYPE_ERROR;
+    else
+      return TYPE_INT;
+
+  case OP_LESS:
+  case OP_LESSEQ:
+  case OP_GRTER:
+  case OP_GRTEREQ:
+  case OP_EQUALS:
+  case OP_NEQ:
+    if(tcDEBUG) printf(" -- trace -- compare\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ((t1 == TYPE_VOID) || (t2 == TYPE_VOID)){
+      return TYPE_ERROR;
+    }else
+      return TYPE_INT;
+
+  case OP_AND:
+  case OP_OR:
+    if(tcDEBUG) printf(" -- trace -- binary logical\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ((t1 == TYPE_VOID) || (t2 == TYPE_VOID)){
+      return TYPE_ERROR;
+    }else{
+      if ((t1 == TYPE_DOUBLE) || (t2 == TYPE_DOUBLE))
+	return TYPE_ERROR;
+      else
+	return TYPE_INT;
+    }
+
+  case OP_NOT:
+    if(tcDEBUG) printf(" -- trace -- not\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    if(t1 == TYPE_VOID){
+      return TYPE_ERROR;
+    }else{
+      if (t1 == TYPE_DOUBLE)
+	return TYPE_ERROR;
+      else
+	return TYPE_INT;
+    }
+
+  case OP_INC_PRE:
+  case OP_INC_POST:
+  case OP_DEC_PRE:
+  case OP_DEC_POST:
+    if(tcDEBUG) printf(" -- trace -- side effect\n");
+    return det_expr_type(var_table, function_table, root->left_child);
+  default:
+    printf("--- error --- this should not appear\n");
+    return TYPE_ERROR;	
+  }
+}
+
+/* get data type of the given ID */
+data_type get_dtype_from_symtab(flat_symtab var_table, int sn)
+{
+  return var_table->entries[sn]->dtype;
+}
