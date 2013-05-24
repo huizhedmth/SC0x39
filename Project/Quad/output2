@@ -1,0 +1,922 @@
+succeeded parsing input.
+ROOT 
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE INT
+      ID parent
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID i
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+      STATEMENT LIST 
+        EMPTY 
+        RETURN 
+          / 
+            ID i
+            INTLIT 2
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE INT
+      ID left
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID i
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+      STATEMENT LIST 
+        EMPTY 
+        RETURN 
+          * 
+            INTLIT 2
+            ID i
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE INT
+      ID right
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID i
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+      STATEMENT LIST 
+        EMPTY 
+        RETURN 
+          + 
+            * 
+              INTLIT 2
+              ID i
+            INTLIT 1
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID exchange
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID key
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID i
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID j
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE DOUBLE
+          ID key_temp
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID handle_temp
+      STATEMENT LIST 
+        EMPTY 
+        = 
+          ID key_temp
+          ID i
+          ID i
+        = 
+          ID i
+          ID j
+          ID j
+        = 
+          ID j
+          ID key_temp
+        = 
+          ID handle_temp
+          ID i
+          ID i
+        = 
+          ID i
+          ID j
+          ID j
+        = 
+          ID j
+          ID handle_temp
+        = 
+          ID i
+          ID i
+        = 
+          ID j
+          ID j
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID heapify
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID key
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID i
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID size
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID i
+          CALL 
+            ID i
+            ARGUMENTS 
+              ID i
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID i
+          CALL 
+            ID i
+            ARGUMENTS 
+              ID i
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID smallest
+      STATEMENT LIST 
+        EMPTY 
+        IFELSE 
+          && 
+            <= 
+              ID l
+              ID size
+            < 
+              ID l
+              ID i
+              ID i
+          = 
+            ID smallest
+            ID l
+          = 
+            ID smallest
+            ID i
+        IF 
+          && 
+            <= 
+              ID r
+              ID size
+            < 
+              ID r
+              ID smallest
+              ID smallest
+          = 
+            ID smallest
+            ID r
+        IF 
+          != 
+            ID smallest
+            ID i
+          COMPOUND STATEMENT 
+            LOCAL DECL 
+              EMPTY 
+            STATEMENT LIST 
+              EMPTY 
+              CALL 
+                ID smallest
+                ARGUMENTS 
+                  ID key
+                  ID handle
+                  ID heap_index
+                  ID i
+                  ID smallest
+              CALL 
+                ID size
+                ARGUMENTS 
+                  ID key
+                  ID handle
+                  ID heap_index
+                  ID smallest
+                  ID size
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID build_heap
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID key
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID size
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID i
+      STATEMENT LIST 
+        EMPTY 
+        FOR 
+          = 
+            ID i
+            / 
+              ID size
+              INTLIT 2
+          >= 
+            ID i
+            INTLIT 1
+          CALL 
+            ID size
+            ARGUMENTS 
+              ID key
+              ID handle
+              ID heap_index
+              ID i
+              ID size
+          --PRE 
+            ID i
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID extract_min
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID key
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID size
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+      STATEMENT LIST 
+        EMPTY 
+        CALL 
+          ID size
+          ARGUMENTS 
+            ID key
+            ID handle
+            ID heap_index
+            INTLIT 1
+            ID size
+        CALL 
+          ID size
+          ARGUMENTS 
+            ID key
+            ID handle
+            ID heap_index
+            INTLIT 1
+            - 
+              ID size
+              INTLIT 1
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID decrease_key
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID key
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID i
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID size
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE
+        ID new_key
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+      STATEMENT LIST 
+        EMPTY 
+        = 
+          ID i
+          ID new_key
+        WHILE 
+          && 
+            > 
+              ID i
+              INTLIT 1
+            > 
+              ID i
+              ID i
+              ID i
+          COMPOUND STATEMENT 
+            LOCAL DECL 
+              EMPTY 
+            STATEMENT LIST 
+              EMPTY 
+              CALL 
+                ID i
+                ARGUMENTS 
+                  ID key
+                  ID handle
+                  ID heap_index
+                  ID i
+                  CALL 
+                    ID i
+                    ARGUMENTS 
+                      ID i
+              = 
+                ID i
+                CALL 
+                  ID i
+                  ARGUMENTS 
+                    ID i
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID insert
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID key
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID vertex
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID size
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE
+        ID new_key
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+      STATEMENT LIST 
+        EMPTY 
+        = 
+          ID size
+          DOUBLELIT 1000000000.000000
+        = 
+          ID size
+          ID vertex
+        = 
+          ID vertex
+          ID size
+        CALL 
+          ID new_key
+          ARGUMENTS 
+            ID key
+            ID handle
+            ID heap_index
+            ID size
+            ID size
+            ID new_key
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID relax
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID u
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID v
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE
+        ID w
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID key
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID size
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID pi
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+      STATEMENT LIST 
+        EMPTY 
+        IF 
+          > 
+            ID v
+            + 
+              ID u
+              ID w
+          COMPOUND STATEMENT 
+            LOCAL DECL 
+              EMPTY 
+            STATEMENT LIST 
+              EMPTY 
+              CALL 
+                ID w
+                ARGUMENTS 
+                  ID key
+                  ID handle
+                  ID heap_index
+                  ID v
+                  ID v
+                  ID size
+                  + 
+                    ID u
+                    ID w
+              = 
+                ID v
+                ID u
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID initialize_single_source
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID key
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID pi
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID s
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID n
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID i
+      STATEMENT LIST 
+        EMPTY 
+        FOR 
+          = 
+            ID i
+            INTLIT 1
+          <= 
+            ID i
+            ID n
+          COMPOUND STATEMENT 
+            LOCAL DECL 
+              EMPTY 
+            STATEMENT LIST 
+              EMPTY 
+              = 
+                ID i
+                DOUBLELIT 1000000000.000000
+              = 
+                ID i
+                ID i
+              = 
+                ID i
+                ID i
+              = 
+                ID i
+                INTLIT 0
+          ++PRE 
+            ID i
+        = 
+          ID s
+          DOUBLELIT 0.000000
+        CALL 
+          ID n
+          ARGUMENTS 
+            ID key
+            ID handle
+            ID heap_index
+            ID n
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID dijkstra
+    FUNC PARAMS 
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID first
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID node
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID next
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID w
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE DOUBLE ARRAY
+        ID d
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID pi
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID s
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT
+        ID n
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID handle
+      PARAMETER 
+        STORAGE NORMAL
+        TYPE INT ARRAY
+        ID heap_index
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID n
+          ID n
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID u
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID v
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID i
+      STATEMENT LIST 
+        EMPTY 
+        CALL 
+          ID n
+          ARGUMENTS 
+            ID d
+            ID handle
+            ID heap_index
+            ID pi
+            ID s
+            ID n
+        WHILE 
+          > 
+            ID size
+            INTLIT 0
+          COMPOUND STATEMENT 
+            LOCAL DECL 
+              EMPTY 
+            STATEMENT LIST 
+              EMPTY 
+              = 
+                ID u
+                ID handle
+                INTLIT 1
+              CALL 
+                ID size
+                ARGUMENTS 
+                  ID d
+                  ID handle
+                  ID heap_index
+                  ID size
+              --PRE 
+                ID size
+              = 
+                ID i
+                ID u
+                ID u
+              WHILE 
+                > 
+                  ID i
+                  INTLIT 0
+                COMPOUND STATEMENT 
+                  LOCAL DECL 
+                    EMPTY 
+                  STATEMENT LIST 
+                    EMPTY 
+                    = 
+                      ID v
+                      ID i
+                      ID i
+                    CALL 
+                      ID pi
+                      ARGUMENTS 
+                        ID u
+                        ID v
+                        ID i
+                        ID i
+                        ID d
+                        ID handle
+                        ID heap_index
+                        ID size
+                        ID pi
+                    = 
+                      ID i
+                      ID i
+                      ID i
+  FUNC DECL 
+    FUNC HEADER 
+      TYPE VOID
+      ID main
+    FUNC PARAMS 
+      TYPE VOID
+    COMPOUND STATEMENT 
+      LOCAL DECL 
+        EMPTY 
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT ARRAY
+          ID first
+          INTLIT 6
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT ARRAY
+          ID node
+          INTLIT 11
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT ARRAY
+          ID next
+          INTLIT 11
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT ARRAY
+          ID pi
+          INTLIT 6
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT ARRAY
+          ID handle
+          INTLIT 6
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT ARRAY
+          ID heap_index
+          INTLIT 6
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE DOUBLE ARRAY
+          ID w
+          INTLIT 11
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE DOUBLE ARRAY
+          ID d
+          INTLIT 6
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID s
+        VAR DECL 
+          STORAGE NORMAL
+          TYPE INT
+          ID i
+      STATEMENT LIST 
+        EMPTY 
+        = 
+          ID first
+          INTLIT 1
+        = 
+          ID first
+          INTLIT 3
+        = 
+          ID first
+          INTLIT 5
+        = 
+          ID first
+          INTLIT 6
+        = 
+          ID first
+          INTLIT 9
+        = 
+          ID node
+          INTLIT 2
+        = 
+          ID node
+          INTLIT 4
+        = 
+          ID node
+          INTLIT 3
+        = 
+          ID node
+          INTLIT 4
+        = 
+          ID node
+          INTLIT 5
+        = 
+          ID node
+          INTLIT 2
+        = 
+          ID node
+          INTLIT 3
+        = 
+          ID node
+          INTLIT 5
+        = 
+          ID node
+          INTLIT 1
+        = 
+          ID node
+          INTLIT 3
+        = 
+          ID w
+          DOUBLELIT 10.000000
+        = 
+          ID w
+          DOUBLELIT 5.000000
+        = 
+          ID w
+          DOUBLELIT 1.000000
+        = 
+          ID w
+          DOUBLELIT 2.000000
+        = 
+          ID w
+          DOUBLELIT 4.000000
+        = 
+          ID w
+          DOUBLELIT 3.000000
+        = 
+          ID w
+          DOUBLELIT 9.000000
+        = 
+          ID w
+          DOUBLELIT 2.000000
+        = 
+          ID w
+          DOUBLELIT 7.000000
+        = 
+          ID w
+          DOUBLELIT 6.000000
+        = 
+          ID next
+          INTLIT 2
+        = 
+          ID next
+          INTLIT 0
+        = 
+          ID next
+          INTLIT 4
+        = 
+          ID next
+          INTLIT 0
+        = 
+          ID next
+          INTLIT 0
+        = 
+          ID next
+          INTLIT 7
+        = 
+          ID next
+          INTLIT 8
+        = 
+          ID next
+          INTLIT 0
+        = 
+          ID next
+          INTLIT 10
+        = 
+          ID next
+          INTLIT 0
+        PRINT 
+          STRINGLIT Enter source node: 
+        READ 
+          ID s
+        CALL 
+          ID heap_index
+          ARGUMENTS 
+            ID first
+            ID node
+            ID next
+            ID w
+            ID d
+            ID pi
+            ID s
+            INTLIT 5
+            ID handle
+            ID heap_index
+        FOR 
+          = 
+            ID i
+            INTLIT 1
+          <= 
+            ID i
+            INTLIT 5
+          COMPOUND STATEMENT 
+            LOCAL DECL 
+              EMPTY 
+            STATEMENT LIST 
+              EMPTY 
+              PRINT 
+                ID i
+              PRINT 
+                STRINGLIT : 
+              PRINT 
+                ID i
+                ID i
+                ID i
+              PRINT 
+                STRINGLIT   
+              PRINT 
+                ID i
+                ID i
+              PRINT 
+                STRINGLIT \n
+          ++PRE 
+            ID i
