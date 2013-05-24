@@ -34,7 +34,6 @@ int main(int argc, char** argv)
   int print_t = 0;
   int print_v = 0;
   int print_f = 0;
-  int print_q = 0;
   int i;
   int rc;
 
@@ -62,9 +61,7 @@ int main(int argc, char** argv)
       print_v = 1;
     }else if (strcmp(argv[i], "-f") == 0){
       print_f = 1;
-    }else if (strcmp(argv[i], "-q") == 0){
-      print_q = 1;
-    }else{ 
+    }else {
       printf("acceptable options are -t, -v and -f\n");
     }
   }
@@ -75,7 +72,10 @@ int main(int argc, char** argv)
   // parse input
   rc = yyparse();
 
-  if(rc != 0){
+  if (rc == 0){
+    printf("succeeded parsing input.\n");
+  }
+  else{
     printf("--- error --- failed parsing input: error at line %d, abort.\n", lineNumber);
     return -1;
   }
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
   // compute address for global and local vars
   comp_addr(var_table, function_table, root);
 
-  gen_code(var_table, function_table, root);
+  gen_quad(var_table, function_table, root);
 
   // print data structures
    if(print_t == 1)
@@ -106,8 +106,6 @@ int main(int argc, char** argv)
      print_flat_table(var_table);
    if(print_f == 1)
      print_func_table(function_table);
-   if(print_q == 1)   
-     print_code();
  
   return 0;
 } 

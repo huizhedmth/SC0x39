@@ -548,8 +548,8 @@ static const yytype_uint16 yyrline[] =
      559,   567,   572,   582,   589,   596,   605,   613,   622,   623,
      630,   641,   645,   650,   650,   661,   674,   686,   698,   710,
      720,   737,   753,   769,   785,   798,   811,   824,   837,   846,
-     856,   857,   866,   875,   884,   893,   894,   903,   911,   912,
-     916,   921,   929,   929,   942,   947,   951,   961
+     856,   857,   866,   875,   884,   893,   894,   903,   912,   913,
+     917,   922,   930,   930,   943,   948,   952,   962
 };
 #endif
 
@@ -2799,23 +2799,24 @@ yyreduce:
 				t->value.double_value = atof(savedLiteralText);
 				t->static_expr = 1;
 				t->expr.dtype = EXPR_DOUBLE;
-				t->expr.int_value = t->value.int_value;
+				//	printf("c57.y: double value = %f\n", t->value.double_value);
+				t->expr.double_value = t->value.double_value;
 				(yyval) = t;
 			;}
     break;
 
   case 108:
-#line 911 "C57.y"
-    {(yyval) = (yyvsp[(1) - (1)]);;}
-    break;
-
-  case 109:
 #line 912 "C57.y"
     {(yyval) = (yyvsp[(1) - (1)]);;}
     break;
 
+  case 109:
+#line 913 "C57.y"
+    {(yyval) = (yyvsp[(1) - (1)]);;}
+    break;
+
   case 110:
-#line 916 "C57.y"
+#line 917 "C57.y"
     {
 			       ast_node t = create_ast_node(SIZE_OF);
 			       (yyval) = t;
@@ -2824,7 +2825,7 @@ yyreduce:
     break;
 
   case 111:
-#line 921 "C57.y"
+#line 922 "C57.y"
     {
 			       ast_node t = create_ast_node(SIZE_OF);
 			       (yyval) = t;
@@ -2833,7 +2834,7 @@ yyreduce:
     break;
 
   case 112:
-#line 929 "C57.y"
+#line 930 "C57.y"
     {
 			   ast_node t = create_ast_node(IDENTIFIER);
 			   t->value.string = strdup(savedIdText);
@@ -2842,7 +2843,7 @@ yyreduce:
     break;
 
   case 113:
-#line 933 "C57.y"
+#line 934 "C57.y"
     {
 			   ast_node t = create_ast_node(CALL);
 			   t->left_child = (yyvsp[(2) - (5)]);
@@ -2852,7 +2853,7 @@ yyreduce:
     break;
 
   case 114:
-#line 942 "C57.y"
+#line 943 "C57.y"
     {
 				ast_node t = create_ast_node(ARGS);
 				(yyval) = t;
@@ -2861,12 +2862,12 @@ yyreduce:
     break;
 
   case 115:
-#line 947 "C57.y"
+#line 948 "C57.y"
     {(yyval) = NULL;;}
     break;
 
   case 116:
-#line 951 "C57.y"
+#line 952 "C57.y"
     {
 				ast_node t = (yyvsp[(1) - (3)]);
 				if (t!=NULL){
@@ -2880,13 +2881,13 @@ yyreduce:
     break;
 
   case 117:
-#line 961 "C57.y"
+#line 962 "C57.y"
     {(yyval) = (yyvsp[(1) - (1)]);;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 2890 "C57.tab.c"
+#line 2891 "C57.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3100,7 +3101,7 @@ yyreturn:
 }
 
 
-#line 967 "C57.y"
+#line 968 "C57.y"
 	/* code section */
 void set_debug()
 {

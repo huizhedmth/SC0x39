@@ -11,32 +11,47 @@
 #include "ast.h"
 #include "symtab.h"
 
-#define MAXQUADSIZE 2048
+#define MAXQUADSIZE 2048	/* maximum number of quads */
+#define MAXTEMP 100		/* maximum number of temp vars */
+#define TEMP_BASE_ADDR 4000	/* where temp vars are saved */
 
 
 /* operation types for quad */
 typedef enum {
   ADDI,
-  ADDD,
+  ADDF,
   SUB,
-  SUBD,
+  SUBF,
   MUL,
-  MULD,
+  MULF,
   DIV,
-  DIVD,
+  DIVF,
   MOD,
-  LT,
-  LEQ,
-  GT,
-  GEQ,
-  EQ,
-  NEQ,
+
+  JLT,
+  JLE,
+  JGT,
+  JGE,
+  JEQ,
+  JNE,
+  JFLT,
+  JFLE,
+  JFGT,
+  JFGE,
+  JFEQ,
+  JFNE,
+
   NOT,
   PREINC,
   INCPOST,
   PREDEC,
   DECPOST,
-  ASSIGN,	// args = (id, index, value), may need expansion  
+
+  ASSIGNI,	// int literal
+  ASSIGNF,	// float literal
+  ASSIGNV,	// var
+
+ 
 
   IF_FALSE,
   IF_TRUE,
@@ -45,11 +60,15 @@ typedef enum {
   FUNC_CALL,
   RET,
 
-  RD,
-  PRINT,
+  RDI,
+  RDF,
+  RDB,
+  PRINTI,
+  PRINTF,
+  PRINTB,
 
-  ITOD,
-  DTOI,
+  ITOF,
+  FTOI,
 
   FUNC_BODY,
   START,	// main
@@ -72,7 +91,8 @@ struct oprand {
     double double_value;
     int id_addr;
   } value;
-  oprand_type type;
+  oprand_type op_type;
+  data_type dtype;
 };
 
 /* Define quad structure */
@@ -85,7 +105,7 @@ struct quad {
 };
 
 /* Create oprand, need to cast value type */
-oprand create_oprand(oprand_type type, double value);
+oprand create_oprand(oprand_type type, data_type dtype, double value);
 
 /* Create a quad */
 quad create_quad(quad_op op, oprand op1, oprand op2, oprand op3);
@@ -93,11 +113,21 @@ quad create_quad(quad_op op, oprand op1, oprand op2, oprand op3);
 /* Backpatch a quad */
 void patch_quad(quad q, int index, oprand opx);
 
-/* Generate intermediate code recursively */
-void gen_quad(flat_symtab var_table, func_table function_table, ast_node node);
+/* Generate intermediate code recursively 
+ * The returned oprand may be necessary to determine
+ * expression values.
+ */
+oprand gen_code(flat_symtab var_table, func_table function_table, ast_node node);
 
 /* Insert a quad to global quad array */
 void insert_quad(quad qd);
+
+/* Get next available temp */
+int next_temp();
+
+/* Get mem address of a given temp */
+int get_temp_addr(int no_temp);	
+
 
 /* Printers */
 void print_code();

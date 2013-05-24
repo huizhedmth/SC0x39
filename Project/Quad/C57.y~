@@ -905,8 +905,7 @@ r_value:		expression '+' expression{
 				t->value.double_value = atof(savedLiteralText);
 				t->static_expr = 1;
 				t->expr.dtype = EXPR_DOUBLE;
-				//	printf("c57.y: double value = %f\n", t->value.double_value);
-				t->expr.double_value = t->value.double_value;
+				t->expr.int_value = t->value.int_value;
 				$$ = t;
 			}
 |			sizeof_expression {$$ = $1;}
