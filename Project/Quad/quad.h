@@ -51,13 +51,13 @@ typedef enum {
   ASSIGNF,	// float literal
   ASSIGNV,	// var
 
- 
-
   IF_FALSE,
   IF_TRUE,
   GOTO,
 
   FUNC_CALL,
+  PUSH,
+  POP,
   RET,
 
   RDI,

@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-extern symtab_entry lookup_in_flat_table(flat_symtab var_table, int sn);
 /* The global quad array */
 quad g_array[MAXQUADSIZE];
 
@@ -55,6 +54,7 @@ char* op_str[] = {
   "INCPOST",
   "PREDEC",
   "DECPOST",
+
   "ASSIGNI",
   "ASSIGNF",
   "ASSIGNV",
@@ -63,6 +63,8 @@ char* op_str[] = {
   "GOTO",
 
   "FUNC_CALL",
+  "PUSH",
+  "POP",
   "RET",
 
   "RDI",
@@ -79,16 +81,65 @@ char* op_str[] = {
   "START"
     };
 
+/* lookup a function by name, return its entry if found, otherwise NULL */
+func_entry lookup_function(func_table function_table, char* name)
+{
+  int i;
+  for (i = 0; i < function_table->size; i++){
+    if(strcmp(name, function_table->entries[i]->id) == 0)
+      return function_table->entries[i];
+  }
+  return NULL;
+}
 
+/* Binary operation wrapper (+,-,*,/), save a little space */
+oprand gen_code_biop(flat_symtab var_table, func_table function_table, ast_node root)
+{
+  oprand op1, op2, op_temp1, op_ret;
+  int source_addr;
+  
+  op1 = gen_code(var_table, function_table, root->left_child);
+  op2 = gen_code(var_table, function_table, root->left_child->right_sibling);
+  source_addr = get_temp_addr(next_temp());
 
+  // deal with coersion by check types. four combinations in total
+  if (op1->dtype == TYPE_INT){
+    if (op2->dtype == TYPE_INT){
+      op_ret = create_oprand(OP_TYPE_ID, TYPE_INT, (double) source_addr);
+      insert_quad(create_quad(ADD, op_ret, op1, op2));
+    }else{	// promote op1 to double, need a new temp
+      // create new temp 
+      op_temp1 = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
+	
+      // promote the temp: get double value from op1 and save it into temp
+      insert_quad(create_quad(ITOF, op_temp1, op1, NULL));
+	
+      // ready to add: op2 + op_temp1 => op_ret
+      op_ret = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double)source_addr);
+      insert_quad(create_quad(ADDF, op_ret, op_temp1, op2));
+	
+    }
+  }else{
+    if (op2->dtype == TYPE_INT){// promote op2 to double, similar as above
+      op_temp1 = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
+      insert_quad(create_quad(ITOF, op_temp1, op2, NULL));
+      op_ret = create_oprand(OP_TYPE_ID, TYPE_DOUBLE,  (double)source_addr);
+      insert_quad(create_quad(ADDF, op_ret, op1, op_temp1));
+    }else{	// both double, no promotion needed
+      op_ret = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double)source_addr);
+      insert_quad(create_quad(ADDF, op_ret, op1, op2));
+    }
+  }	
+	
+  return op_ret;    
+}
 /* Generate quad arrays for the syntax tree */
 oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
 {
   ast_node child;
   quad qd;
   data_type dtype;
-  ast_node expr_node;
-  ast_node id_node;
+  ast_node expr_node, id_node, arg_node;
   int source_addr;
   int int_value;
   double double_value;
@@ -169,40 +220,7 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
     break;
 
   case OP_PLUS:	// first generate code for children, then return the result oprand
-    op1 = gen_code(var_table, function_table, root->left_child);
-    op2 = gen_code(var_table, function_table, root->left_child->right_sibling);
-    source_addr = get_temp_addr(next_temp());
-
-    // deal with coersion by check types. four combinations in total
-    if (op1->dtype == TYPE_INT){
-      if (op2->dtype == TYPE_INT){
-	op_ret = create_oprand(OP_TYPE_ID, TYPE_INT, (double) source_addr);
-	insert_quad(create_quad(ADD, op_ret, op1, op2));
-      }else{	// promote op1 to double, need a new temp
-	// create new temp 
-	op_temp1 = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
-	
-	// promote the temp: get double value from op1 and save it into temp
-	insert_quad(create_quad(ITOF, op_temp1, op1, NULL));
-	
-	// ready to add: op2 + op_temp1 => op_ret
-	op_ret = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double)source_addr);
-	insert_quad(create_quad(ADDF, op_ret, op_temp1, op2));
-	
-      }
-    }else{
-      if (op2->dtype == TYPE_INT){// promote op2 to double, similar as above
-	op_temp1 = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
-	insert_quad(create_quad(ITOF, op_temp1, op2, NULL));
-	op_ret = create_oprand(OP_TYPE_ID, TYPE_DOUBLE,  (double)source_addr);
-	insert_quad(create_quad(ADDF, op_ret, op1, op_temp1));
-      }else{	// both double, no promotion needed
-	op_ret = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double)source_addr);
-	insert_quad(create_quad(ADDF, op_ret, op1, op2));
-      }
-    }	
-	
-    return op_ret;    
+    return gen_code_biop(var_table, function_table, root);
 
   case OP_ASSIGN:	// may need to do coersion
     // retireve info
@@ -211,10 +229,10 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
     // do coersion if necessary
     op1 = gen_code(var_table, function_table, root->left_child);
     op2 = gen_code(var_table, function_table, root->left_child->right_sibling);
-    if ((op1->dtype == TYPE_DOUBLE) && (op2->dtype == TYPE_INT)){	// promote op2
+    if ((op1->dtype >= TYPE_DOUBLE) && (op2->dtype <= TYPE_INT_ARRAY)){	// promote op2
       op_temp1 = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
       insert_quad(create_quad(ITOF, op_temp1, op2, NULL));
-    }else if ((op1->dtype == TYPE_INT) && (op2->dtype == TYPE_DOUBLE)){	// narrow op2
+    }else if ((op1->dtype <= TYPE_INT_ARRAY) && (op2->dtype >= TYPE_DOUBLE)){	// narrow op2
       op_temp1 = create_oprand(OP_TYPE_ID, TYPE_INT, (double) get_temp_addr(next_temp()));
       insert_quad(create_quad(FTOI, op_temp1, op2, NULL));
     }else{	// same type, yeah~
@@ -271,7 +289,7 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
 	
       // calculate address offset, and add it to source_addr   
       // create a temp to store the final address
-      op_temp1 = create_oprand(OP_TYPE_ID, TYPE_INT, get_temp_addr(next_temp()));      
+      op_temp1 = create_oprand(OP_TYPE_ID, dtype, get_temp_addr(next_temp()));      
       // compute offset to op_temp1
       op2 = create_oprand(OP_TYPE_INT, TYPE_INT, (double)8);
       insert_quad(create_quad(MUL, op_temp1, op1, op2));
@@ -279,7 +297,7 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
       if (flag_param == 0)
 	op2 = create_oprand(OP_TYPE_INT, TYPE_INT, (double)source_addr); // directly store source_addr to op2
       else
-	op2 = create_oprand(OP_TYPE_ID, TYPE_INT, (double)source_addr); // dereference source_addr to op2
+	op2 = create_oprand(OP_TYPE_ID, dtype, (double)source_addr); // dereference source_addr to op2
 
       // now compute the final address to op_temp1
       insert_quad(create_quad(ADD, op_temp1, op2, op_temp1));
@@ -293,7 +311,52 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
 
     // return oprand
     return op_ret;
+
+  case CALL:
+    // a FUNC_CALL quad has two oprands, the first being the sn of the function (for now),
+    // and the second being the oprand that is to take the return value opon returning, 
+    // if the function will return a value
+    //
+    // there is no instruction as push/pop in TM57. (nor is ret). the opcode here will be 
+    // fully expanded in assembly-generation stage. (especially for SP ajusting, which needs not 
+    // to be worried within a function body.)
+    //
+    // first push params, then make the call, receiving ret value if available and pop params
+
+    // push params
+    arg_node = root->left_child->right_sibling;
+    id_node = root->left_child;
+    if (arg_node == NULL){	// the function takes no arguments, do nothing
+    }else{	// push arguments from left to right, just as the order they are stored in the ast
+      for(child = arg_node->left_child; child != NULL; child = child->right_sibling){
+	// use a temp to hold the value of the argument(expression)
+	op_temp1 = gen_code(var_table, function_table, child);
+	// do coercion/widening if necessary
+	// mark: TODO
+	// push this argument, yeah~
+	insert_quad(create_quad(PUSH, op_temp1, NULL, NULL));
+      }
+    }
+    // make the call. save ret value in a temp if necessary
+  
+
+    fEntry = lookup_function(function_table, id_node->value.string);
+    op1 = create_oprand(OP_TYPE_INT, TYPE_INT, (double)fEntry->sn);
+    dtype = fEntry->dtype;
+    op_temp1 = NULL;
+    if (dtype == TYPE_VOID){	// no ret value, just make the call
+      insert_quad(create_quad(FUNC_CALL, op1, NULL, NULL));
+    }else{	// need a temp to save ret value
+      op_temp1 = create_oprand(OP_TYPE_ID, dtype, get_temp_addr(next_temp()));
+      insert_quad(create_quad(FUNC_CALL, op1, op_temp1, NULL));
+    }
+
+    // pop arguments
+    // each POP pops one argument, so we need argc POP quads
+    for (i = 0; i < fEntry->argc; i++)
+      insert_quad(create_quad(POP, NULL, NULL, NULL));
     
+    return op_temp1;
   default:
     printf("--- Not reached yet. Be patient:) ---\n");
     break;
@@ -329,7 +392,7 @@ oprand create_oprand(oprand_type type, data_type dtype,  double value)
   new_op->value.id_addr = new_op->value.int_value = (int)value;
   new_op->op_type = type;
   new_op->dtype = dtype;
-		      
+  
   return new_op;
 }
 

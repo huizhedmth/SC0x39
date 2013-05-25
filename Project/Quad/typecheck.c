@@ -133,9 +133,11 @@ int type_check(flat_symtab var_table, func_table function_table, ast_node root)
 	  break;
 	}
 	if (fEntry->types[i] != det_expr_type(var_table, function_table, temp)){
-	  printf("--- error --- argument type mismatch at line %d.\n", root->lineNumber);
-	  type_error = 1;
-	  break;
+	  if ((det_expr_type(var_table, function_table, temp) == TYPE_VOID)){
+	    printf("--- error --- argument type mismatch at line %d.\n", root->lineNumber);
+	    type_error = 1;
+	    break;
+	  }
 	}
 	temp = temp->right_sibling;
       }
