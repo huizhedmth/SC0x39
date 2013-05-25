@@ -22,6 +22,10 @@ static int next_quad = 0;
 /* Next available temp var */
 static int next_free_temp = 0;
 
+/* Current function */
+static int cur_fun = -1;
+
+
 char* op_str[] = {
   "ADD",
   "ADDF",
@@ -93,6 +97,8 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
   oprand_type opcode;
   func_entry fEntry;
   int temp_var;
+  int i;
+  int flag_param;
 
   switch(root->node_type){
   case ROOT:	// first init all globals, then "call" main, then generate codes for func_decl
@@ -135,6 +141,7 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
     break;
 	
   case FUNC_DECL:	// remember function entry address by creating a FUNC_BODY quad
+    cur_fun = root->left_child->left_child->right_sibling->sn;
     // retrieve info
     id_node = root->left_child->left_child->right_sibling;
     source_addr = next_quad;
@@ -241,28 +248,45 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
     // retrieve info
     entry = var_table->entries[root->sn];
     dtype = entry->dtype;
-    printf("sn: %d, dtype in table: %d\n", entry->sn, dtype);
     source_addr = var_table->entries[root->sn]->addr;
 
     if (root->left_child != NULL){	// an array. type check guarentees that it's not non-integer indexed
+      // if the name comes from a function param, then its value contains the actual address
+      // in this case we have to dereference the value
+
+      // check if this id is a param
+      flag_param = 0;
+      if(cur_fun >=0){
+	fEntry = function_table->entries[cur_fun];
+	for (i = 0; i < fEntry->argc; i++){
+	  if (strcmp(root->value.string, fEntry->args[i])==0){
+	    flag_param = 1;
+	    break;
+	  }
+	}
+      }
+  	
       // generate code for expression
       op1 = gen_code(var_table, function_table, root->left_child);
-      
+	
       // calculate address offset, and add it to source_addr   
-
       // create a temp to store the final address
       op_temp1 = create_oprand(OP_TYPE_ID, TYPE_INT, get_temp_addr(next_temp()));      
       // compute offset to op_temp1
       op2 = create_oprand(OP_TYPE_INT, TYPE_INT, (double)8);
       insert_quad(create_quad(MUL, op_temp1, op1, op2));
       // now op_temp1 has the right offset, add it with source_addr
-      op2 = create_oprand(OP_TYPE_INT, TYPE_INT, (double)source_addr); // store source_addr to op2
+      if (flag_param == 0)
+	op2 = create_oprand(OP_TYPE_INT, TYPE_INT, (double)source_addr); // directly store source_addr to op2
+      else
+	op2 = create_oprand(OP_TYPE_ID, TYPE_INT, (double)source_addr); // dereference source_addr to op2
+
       // now compute the final address to op_temp1
       insert_quad(create_quad(ADD, op_temp1, op2, op_temp1));
-		 
+      
       // return op_temp1
       op_ret = op_temp1;
-   
+  
     }else{	// not an array - simple
       op_ret = create_oprand(OP_TYPE_ID, dtype, (double)source_addr);
     }

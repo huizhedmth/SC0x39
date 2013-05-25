@@ -78,13 +78,17 @@ int main(int argc, char** argv)
   if(rc != 0){
     printf("--- error --- failed parsing input: error at line %d, abort.\n", lineNumber);
     return -1;
-  }
+  }else{
+    printf(" --- ^ ^ --- parsing succeeded.\n");
+  }	
   
   // build symbol table
   build_symtab(tracking_table, var_table, function_table, root);
   if (sym_error != 0){
     printf("--- error --- errors found building symboltable, abort. \n");
     return -1;
+  }else{
+    printf(" --- ^ ^ --- symtab built.\n");
   }
 
   // type check
@@ -92,11 +96,13 @@ int main(int argc, char** argv)
   if (rc != 0){
     printf("--- error --- errors found in type checking, abort.\n");
     return -1;
+  }else{
+    printf(" --- ^ ^ --- typecheck passed.\n");
   }
 
   // compute address for global and local vars
   comp_addr(var_table, function_table, root);
-
+  printf(" --- ^ ^ --- address computed. generating code...\n");
   gen_code(var_table, function_table, root);
 
   // print data structures
