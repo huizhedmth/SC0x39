@@ -56,11 +56,6 @@ void comp_addr(flat_symtab var_table, func_table function_table, ast_node root)
     }
     break;
 
-  case IDENTIFIER:	// for each id that is an array, re-write its address 
-    entry = lookup_in_flat_table(var_table, root->sn);
-    if ((entry->dtype == TYPE_INT_ARRAY) || (entry->dtype == TYPE_DOUBLE_ARRAY))
-      entry->addr = entry->parent->addr;
-    break;
   default:
     break;
   }

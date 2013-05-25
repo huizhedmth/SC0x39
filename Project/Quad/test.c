@@ -5,10 +5,9 @@ int main(void)
 {
   int a = 100;
   double b = 3.14;
-  int aa;
   double bb[10];
 
-  a = b + 1;
+  bb[1+a] = b + 1;
   return a + a + 10000;
 }
 

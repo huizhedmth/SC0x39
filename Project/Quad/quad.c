@@ -23,7 +23,7 @@ static int next_quad = 0;
 static int next_free_temp = 0;
 
 char* op_str[] = {
-  "ADDI",
+  "ADD",
   "ADDF",
   "SUB",
   "SUBF",
@@ -170,7 +170,7 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
     if (op1->dtype == TYPE_INT){
       if (op2->dtype == TYPE_INT){
 	op_ret = create_oprand(OP_TYPE_ID, TYPE_INT, (double) source_addr);
-	insert_quad(create_quad(ADDI, op_ret, op1, op2));
+	insert_quad(create_quad(ADD, op_ret, op1, op2));
       }else{	// promote op1 to double, need a new temp
 	// create new temp 
 	op_temp1 = create_oprand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
@@ -237,14 +237,36 @@ oprand gen_code(flat_symtab var_table, func_table function_table, ast_node root)
   case DOUBLE_LITERAL:
     return create_oprand(OP_TYPE_DOUBLE, TYPE_DOUBLE, root->value.double_value);
 
-  case IDENTIFIER:	// 	simply return an oprand
+  case IDENTIFIER:	// array or var?
     // retrieve info
-    dtype = var_table->entries[root->sn]->dtype;
+    entry = var_table->entries[root->sn];
+    dtype = entry->dtype;
+    printf("sn: %d, dtype in table: %d\n", entry->sn, dtype);
     source_addr = var_table->entries[root->sn]->addr;
 
-    // create oprand
-    op_ret =  create_oprand(OP_TYPE_ID, dtype, (double)source_addr);
-    
+    if (root->left_child != NULL){	// an array. type check guarentees that it's not non-integer indexed
+      // generate code for expression
+      op1 = gen_code(var_table, function_table, root->left_child);
+      
+      // calculate address offset, and add it to source_addr   
+
+      // create a temp to store the final address
+      op_temp1 = create_oprand(OP_TYPE_ID, TYPE_INT, get_temp_addr(next_temp()));      
+      // compute offset to op_temp1
+      op2 = create_oprand(OP_TYPE_INT, TYPE_INT, (double)8);
+      insert_quad(create_quad(MUL, op_temp1, op1, op2));
+      // now op_temp1 has the right offset, add it with source_addr
+      op2 = create_oprand(OP_TYPE_INT, TYPE_INT, (double)source_addr); // store source_addr to op2
+      // now compute the final address to op_temp1
+      insert_quad(create_quad(ADD, op_temp1, op2, op_temp1));
+		 
+      // return op_temp1
+      op_ret = op_temp1;
+   
+    }else{	// not an array - simple
+      op_ret = create_oprand(OP_TYPE_ID, dtype, (double)source_addr);
+    }
+
     // return oprand
     return op_ret;
     

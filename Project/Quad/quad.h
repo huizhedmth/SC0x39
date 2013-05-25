@@ -18,7 +18,7 @@
 
 /* operation types for quad */
 typedef enum {
-  ADDI,
+  ADD,
   ADDF,
   SUB,
   SUBF,
