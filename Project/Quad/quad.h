@@ -15,6 +15,7 @@
 #define MAXTEMP 100		/* maximum number of temp vars */
 #define TEMP_BASE_ADDR 4000	/* where temp vars are saved */
 
+#define MAXFUNCNUM 100
 
 /* operation types for quad */
 typedef enum {
@@ -47,21 +48,25 @@ typedef enum {
   PREDEC,
   DECPOST,
 
-  ASSIGNI,	// int literal
-  ASSIGNF,	// float literal
-  ASSIGNV,	// var
+  // actually no need to separate, was being stupid
+  ASSNA,	// similar as LDA, direct
+  ASSN,	// similar as LD, indirect (dereference)
 
-  IF_FALSE,
-  IF_TRUE,
+  IF_FALSE,	// this group also needs expansion when assembling
+  IF_TRUE,	// not primitive instruction!
   GOTO,
 
   FUNC_CALL,
-  PUSH,
-  POP,
+  PUSH,		// push, pop, and ret are not defined in TM57
+  PUSHFP,
+  POP,		// so need to expand them when assembling
   RET,
 
+  RDIA,		// similar as ASSNA
   RDI,
+  RDFA,
   RDF,
+  RDBA,	       	// seems unneccessary...
   RDB,
   PRINTI,
   PRINTF,
@@ -74,24 +79,26 @@ typedef enum {
   START,	// main
 } quad_op;
 
-/* Define quad oprand type */
+/* Define quad operand type.
+ * Assembly generator uses this to determine instruction type
+ */
 typedef enum  {
-  OP_TYPE_NA,
   OP_TYPE_INT,
   OP_TYPE_DOUBLE,
   OP_TYPE_STR,
   OP_TYPE_ID
-} oprand_type;
+} operand_type;
 
-/* Define oprand structure */
-typedef struct oprand *oprand;
-struct oprand {
+/* Define operand structure */
+typedef struct operand *operand;
+struct operand {
   union {
     int int_value;
     double double_value;
+    char* string_value;
     int id_addr;
   } value;
-  oprand_type op_type;
+  operand_type op_type;
   data_type dtype;
 };
 
@@ -99,25 +106,58 @@ struct oprand {
 typedef struct quad *quad;
 struct quad {
   quad_op op;
-  oprand op1;
-  oprand op2;
-  oprand op3;
+  operand op1;
+  operand op2;
+  operand op3;
+
+  /* only used to backpatch break statements */
+  int index;
 };
 
-/* Create oprand, need to cast value type */
-oprand create_oprand(oprand_type type, data_type dtype, double value);
+/* Used to patch CALL's after a whole pass of the tree */
+struct func_entrance{
+  char* name;	// name of function
+  int index;	// index of quad, its entrance address
+};
+
+typedef struct func_entrance *func_entrance;
+
+struct entrance_table{
+  int size;
+  func_entrance entrances[MAXFUNCNUM];
+};
+typedef struct entrance_table entrance_table;
+
+/* (quad_index, case_constant) pairs. See "case SWITCH_STMT" in quad.c for details */
+struct idx_case_pair{
+  int quad_index;
+  int case_const;
+};
+typedef struct idx_case_pair *idx_case_pair;
+
+struct idx_case_table{
+  int size;
+  idx_case_pair pairs[100];	// hardcode it for now
+};
+typedef struct idx_case_table idx_case_table;
+/************************** function declaration ******************************/
+
+/* Create an func_entrance */
+func_entrance create_entrance(char* name, int index);
+/* Create operand, need to cast value type */
+operand create_operand(operand_type type, data_type dtype, double value);
 
 /* Create a quad */
-quad create_quad(quad_op op, oprand op1, oprand op2, oprand op3);
+quad create_quad(quad_op op, operand op1, operand op2, operand op3);
 
 /* Backpatch a quad */
-void patch_quad(quad q, int index, oprand opx);
+void patch_quad(int q, int i, int next);
 
 /* Generate intermediate code recursively 
- * The returned oprand may be necessary to determine
+ * The returned operand may be necessary to determine
  * expression values.
  */
-oprand gen_code(flat_symtab var_table, func_table function_table, ast_node node);
+operand gen_code(flat_symtab var_table, func_table function_table, ast_node node);
 
 /* Insert a quad to global quad array */
 void insert_quad(quad qd);
@@ -132,4 +172,13 @@ int get_temp_addr(int no_temp);
 /* Printers */
 void print_code();
 void print_quad(quad qd);
+
+/* Fill func entrance address for CALL quads */
+void fill_call();
+
+/* Create a idx_case_pair and insert it*/
+idx_case_pair create_pair(int index, int case_const);
+
+/* Lookup the pair table and patch */
+void patch_a_case(int case_const, int next_quad);
 #endif // QUAD_H

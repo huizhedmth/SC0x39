@@ -1,22 +1,42 @@
-void f(int, double[], double);
-int g(){
-  return 1024;
-}
+void f(int, int);
+int g();
+int h(int a[]);
 
-int main(void)
+
+void main(void)
 {
-  int a = 100;
-  double bb[10];
+  /*
+  int xx[3];
+ 
+  h(xx);
+  f(1024, 1024);
+  g();
+  */
+  /*double b = 2.5 - 1;*/
+  int a;
 
-  bb[1+a] = 128.0 + 1.0;
-  f(a+1, bb, 1.0);
-  a = g();
-  return 256;
+  switch(1){
+  case 1:      
+  case 2:
+ 
+    print 2;
+    break;
+  case 1000:
+    print 1000;
+    f(100,200.5);
+    break;
+  default:
+    print "default\n";
+    break;
+  }
 }
 
-void f(int param1, double param2[], double param3)
-{
-  param1 = 256;
-  param2[10] = 15;
-}
+
+
+void f(int a, int a){return;}
+int g(){return 1;}
+int h(int a[]){return 1+1;}
+
+
+
 

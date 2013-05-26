@@ -68,11 +68,11 @@ struct ast_node_struct {
   int flag_visited;	/* whether it's been visited in case VAR_DECL in function build_symtab */
 
   union{
-    expr_type dtype;
     int int_value;
     double double_value;
   } expr;
 
+    expr_type expr_dtype;
   int static_expr;	/* indicate whether its value can be computed at compile time */
     
 };

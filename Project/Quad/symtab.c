@@ -15,7 +15,7 @@ static int g_var_sn = 0;	/* current "serial number" for id's */
 static int g_func_sn = 0;	/* number of functions */
 //static int g_addr = 100;	/* temp var */
 static int g_func_addr = 1000;	/* temp var */
-extern int hzDEBUG;
+extern int symDEBUG;
 static int g_cur_sn = -1;	/* cur function scope */
 static int g_check_proto = 0;	/* internal use */
 
@@ -663,7 +663,7 @@ void build_symtab(symboltable tracking_table, flat_symtab var_table, func_table 
     name = root->left_child->value.string;
     fEntry = lookup_in_functable(function_table, name);
     if (fEntry == NULL){
-      printf("--- error --- function %s cannot be resolved.\n", name);
+      printf("--- error --- function declaration missing or cannot be resolved.\n", name);
       sym_error++;
     }else{	// insert id into flat table
       root->left_child->sn = g_var_sn;

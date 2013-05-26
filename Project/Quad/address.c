@@ -29,10 +29,9 @@ void comp_addr(flat_symtab var_table, func_table function_table, ast_node root)
 
   switch(root->node_type){
   case VAR_DECL:
-    temp = root->left_child->right_sibling->right_sibling; // ID node
+    temp = root->left_child->right_sibling->right_sibling; // ID nodd  
     sn = temp->sn;
     entry = lookup_in_flat_table(var_table, sn);
-
     if (root->scope > 0){	// not global
       if ((entry->dtype == TYPE_INT) || (entry->dtype == TYPE_DOUBLE)){
 	local_addr -= 8;
@@ -57,19 +56,33 @@ void comp_addr(flat_symtab var_table, func_table function_table, ast_node root)
     break;
 
   case IDENTIFIER:	// for each id that is an array (but not a param), re-write its address 
-    entry = lookup_in_flat_table(var_table, root->sn);
-    if ((entry->dtype == TYPE_INT_ARRAY) || (entry->dtype == TYPE_DOUBLE_ARRAY)){
+    // skip if this is a function
+    flag_param = 0;	// temp var actually
+    for (i = 0; i < function_table->size; i++){
+      if(strcmp(function_table->entries[i]->id, root->value.string)==0){
+	flag_param = 1;
+	break;
+      }
+    }
+    
+    if (flag_param != 1){
       fEntry = retrieve_current_func(function_table, cur_fun);
       // check if this id is a param
-      flag_param = 0;
-      for (i = 0; i < fEntry->argc; i++){
-	if (strcmp(root->value.string, fEntry->args[i])==0){
-	  flag_param = 1;
-	  break;
+      if (fEntry != NULL){
+	flag_param = 0;
+	for (i = 0; i < fEntry->argc; i++){
+	  if (strcmp(root->value.string, fEntry->args[i])==0){
+	    flag_param = 1;
+	    break;
+	  }
 	}
       }
-      if(flag_param == 0)
-	entry->addr = entry->parent->addr;
+      if (flag_param == 0){
+	entry = lookup_in_flat_table(var_table, root->sn);
+	if ((entry->dtype == TYPE_INT_ARRAY) || (entry->dtype == TYPE_DOUBLE_ARRAY)){
+	  entry->addr = entry->parent->addr;
+	}
+      }
     }
     break;
 
@@ -80,6 +93,7 @@ void comp_addr(flat_symtab var_table, func_table function_table, ast_node root)
     break;
   }
 
-  for(root = root->left_child; root != NULL; root = root->right_sibling)
+  for(root = root->left_child; root != NULL; root = root->right_sibling){
     comp_addr(var_table, function_table, root);
+  }
 }

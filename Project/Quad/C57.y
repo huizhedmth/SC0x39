@@ -158,6 +158,10 @@ var_decl_list:		var_decl_list ','  var_decl{
 
 
 var_decl:		ID{
+				if (g_flag_const == 1){
+				   printf("--- error --- missing initialization.\n");
+				   return -1;
+				   }
 				ast_node t = create_ast_node(VAR_DECL);
 				$$ = t;
 				ast_node t1 = create_ast_node(STORAGE);
@@ -593,19 +597,17 @@ continue_statement:	CONTINUE ';'{
 ;
 
 
-case_statement:		CASE NUM ':' statement{
+case_statement:		CASE NUM ':' {
 			     ast_node t = create_ast_node(CASE_STMT);
 			     $$ = t;
 			     t->value.int_value = atoi(savedLiteralText);
-			     t->right_sibling = $4;
 			}    
 ;
 
 
-default_statement:	DEFAULT ':' statement{
+default_statement:	DEFAULT ':' {
 			     ast_node t = create_ast_node(DEFAULT_STMT);
-			     $$ = t;
-			     t->right_sibling = $3;
+			     $$ = t;			 
 			}    
 ;
 
@@ -725,9 +727,9 @@ r_value:		expression '+' expression{
 			    if (($1->static_expr == 1)&&($3->static_expr == 1)){
 			      $$->static_expr = 1;			 
 			      double tmp1, tmp2;
-			      if ($1->expr.dtype == EXPR_DOUBLE)tmp1 = $1->expr.double_value;
+			      if ($1->expr_dtype == EXPR_DOUBLE)tmp1 = $1->expr.double_value;
 			      else tmp1 = $1->expr.int_value;
-			      if ($3->expr.dtype == EXPR_DOUBLE)tmp2 = $3->expr.double_value;
+			      if ($3->expr_dtype == EXPR_DOUBLE)tmp2 = $3->expr.double_value;
 			      else tmp2 = $3->expr.int_value;
 			      if (tmp1 < tmp2)$$->expr.int_value = 1;
 			      else $$->expr.int_value = 0;
@@ -742,9 +744,9 @@ r_value:		expression '+' expression{
 			    if (($1->static_expr == 1)&&($3->static_expr == 1)){
 			      $$->static_expr = 1;			 
 			      double tmp1, tmp2;
-			      if ($1->expr.dtype == EXPR_DOUBLE)tmp1 = $1->expr.double_value;
+			      if ($1->expr_dtype == EXPR_DOUBLE)tmp1 = $1->expr.double_value;
 			      else tmp1 = $1->expr.int_value;
-			      if ($3->expr.dtype == EXPR_DOUBLE)tmp2 = $3->expr.double_value;
+			      if ($3->expr_dtype == EXPR_DOUBLE)tmp2 = $3->expr.double_value;
 			      else tmp2 = $3->expr.int_value;
 			      if (tmp1 <= tmp2)$$->expr.int_value = 1;
 			      else $$->expr.int_value = 0;
@@ -758,9 +760,9 @@ r_value:		expression '+' expression{
 			    if (($1->static_expr == 1)&&($3->static_expr == 1)){
 			      $$->static_expr = 1;			 
 			      double tmp1, tmp2;
-			      if ($1->expr.dtype == EXPR_DOUBLE)tmp1 = $1->expr.double_value;
+			      if ($1->expr_dtype == EXPR_DOUBLE)tmp1 = $1->expr.double_value;
 			      else tmp1 = $1->expr.int_value;
-			      if ($3->expr.dtype == EXPR_DOUBLE)tmp2 = $3->expr.double_value;
+			      if ($3->expr_dtype == EXPR_DOUBLE)tmp2 = $3->expr.double_value;
 			      else tmp2 = $3->expr.int_value;
 			      if (tmp1 > tmp2)$$->expr.int_value = 1;
 			      else $$->expr.int_value = 0;
@@ -774,9 +776,9 @@ r_value:		expression '+' expression{
 			    if (($1->static_expr == 1)&&($3->static_expr == 1)){
 			      $$->static_expr = 1;			 
 			      double tmp1, tmp2;
-			      if ($1->expr.dtype == EXPR_DOUBLE)tmp1 = $1->expr.double_value;
+			      if ($1->expr_dtype == EXPR_DOUBLE)tmp1 = $1->expr.double_value;
 			      else tmp1 = $1->expr.int_value;
-			      if ($3->expr.dtype == EXPR_DOUBLE)tmp2 = $3->expr.double_value;
+			      if ($3->expr_dtype == EXPR_DOUBLE)tmp2 = $3->expr.double_value;
 			      else tmp2 = $3->expr.int_value;
 			      if (tmp1 >= tmp2)$$->expr.int_value = 1;
 			      else $$->expr.int_value = 0;
@@ -872,22 +874,22 @@ r_value:		expression '+' expression{
 			      $$->expr.int_value = $2->expr.int_value - 1;
 			    }			    
 			}
-|			var INC %prec INCPOST{
+|			var INC %prec INCPOST{	
 			    ast_node t = create_ast_node(OP_INC_POST);
 			    t->left_child = $1;
 			    $$ = t;
-			    if($2->static_expr == 1){
+			    if($1->static_expr == 1){
 			      $$->static_expr = 1;
-			      $$->expr.int_value = $2->expr.int_value;
-			    }			    
+			      $$->expr.int_value = $1->expr.int_value;
+			    }		
 			}
 |			var DEC %prec DECPOST{
 			    ast_node t = create_ast_node(OP_DEC_POST);
 			    t->left_child = $1;
 			    $$ = t;
-			    if($2->static_expr == 1){
+			    if($1->static_expr == 1){
 			      $$->static_expr = 1;
-			      $$->expr.int_value = $2->expr.int_value;
+			      $$->expr.int_value = $1->expr.int_value;
 			    }			    
 			}
 |			'(' expression ')' { $$ = $2;}
@@ -895,7 +897,7 @@ r_value:		expression '+' expression{
 				ast_node t = create_ast_node(INT_LITERAL);
 				t->value.int_value = atoi(savedLiteralText);
 				t->static_expr = 1;
-				t->expr.dtype = EXPR_INT;
+				t->expr_dtype = EXPR_INT;
 				t->expr.int_value = t->value.int_value;
 				$$ = t;
 				
@@ -904,8 +906,7 @@ r_value:		expression '+' expression{
 				ast_node t = create_ast_node(DOUBLE_LITERAL);
 				t->value.double_value = atof(savedLiteralText);
 				t->static_expr = 1;
-				t->expr.dtype = EXPR_DOUBLE;
-				//	printf("c57.y: double value = %f\n", t->value.double_value);
+				t->expr_dtype = EXPR_DOUBLE;
 				t->expr.double_value = t->value.double_value;
 				$$ = t;
 			}

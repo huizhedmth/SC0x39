@@ -16,10 +16,13 @@ SOURCE = C57.l
 FLEX = flex
 BISON = bison
 
-target: $(TARGET)
+target: $(TARGET) 
 
 $(TARGET): main.o  parser.o lexer.o ast.o symtab.o typecheck.o address.o quad.o
 	@$(CC) -o $(TARGET) main.o lexer.o parser.o ast.o symtab.o address.o typecheck.o quad.o -lfl
+
+test_quad.o: test_quad.c
+	@$(CC) -o test_quad.o -c test_quad.c
 
 quad.o:	quad.c
 	@$(CC) -o quad.o -c quad.c 

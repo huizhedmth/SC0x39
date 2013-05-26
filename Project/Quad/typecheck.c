@@ -222,6 +222,7 @@ data_type det_expr_type(flat_symtab var_table, func_table function_table, ast_no
       if (entry != NULL){
 	if (entry->static_expr == 1){
 	  root->static_expr = 1;
+	  root->expr_dtype = entry->dtype;
 	  root->expr.int_value = entry->value.int_value;
 	  root->expr.double_value = entry->value.double_value;
 	}
@@ -322,8 +323,9 @@ data_type det_expr_type(flat_symtab var_table, func_table function_table, ast_no
     if(tcDEBUG) printf(" -- trace -- compare\n");
     t1 = det_expr_type(var_table, function_table, root->left_child);
     t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
-    if ((t1 == TYPE_VOID) || (t2 == TYPE_VOID)){
-      printf("--- error --- missing operands at line %d.\n", root->lineNumber);
+    if ( ((t1 == TYPE_VOID) || (t1 == TYPE_INT_ARRAY) || (t1 == TYPE_DOUBLE_ARRAY)) ||
+	 ((t2 == TYPE_VOID) || (t2 == TYPE_INT_ARRAY) || (t2 == TYPE_DOUBLE_ARRAY)) ){
+      printf("--- error --- operand type mismatch at line %d.\n", root->lineNumber);
       return TYPE_ERROR;
     }else
       return TYPE_INT;
@@ -365,7 +367,12 @@ data_type det_expr_type(flat_symtab var_table, func_table function_table, ast_no
   case OP_DEC_PRE:
   case OP_DEC_POST:
     if(tcDEBUG) printf(" -- trace -- side effect\n");
-    return det_expr_type(var_table, function_table, root->left_child);
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    if (t1 != TYPE_INT){
+      printf("--- error --- expected integer-type variable at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }else 
+      return TYPE_INT;
 
   case CALL:
     if(tcDEBUG) printf(" -- trace -- CALL\n");

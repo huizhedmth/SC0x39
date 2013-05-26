@@ -47,7 +47,9 @@ int type_check(flat_symtab var_table, func_table function_table, ast_node root)
 	  entry = lookup_in_flat_table(var_table, 
 				       root->left_child->right_sibling->right_sibling->sn);
 	  entry->static_expr = 1;
+	  //printf("int value: %d\n", temp->expr.int_value);
 	  entry->value.int_value = temp->expr.int_value;
+	  //	  printf("double value: %f\n", temp->expr.double_value);
 	  entry->value.double_value = temp->expr.double_value;
 	}
       }
@@ -131,9 +133,11 @@ int type_check(flat_symtab var_table, func_table function_table, ast_node root)
 	  break;
 	}
 	if (fEntry->types[i] != det_expr_type(var_table, function_table, temp)){
-	  printf("--- error --- argument type mismatch at line %d.\n", root->lineNumber);
-	  type_error = 1;
-	  break;
+	  if ((det_expr_type(var_table, function_table, temp) == TYPE_VOID)){
+	    printf("--- error --- argument type mismatch at line %d.\n", root->lineNumber);
+	    type_error = 1;
+	    break;
+	  }
 	}
 	temp = temp->right_sibling;
       }
