@@ -1,0 +1,399 @@
+/* typecheck.c
+ *
+ * Implememtation of the type checking function
+ * 
+ * by Huizhe Li, Master Student, Dartmouth College.
+ */
+
+#include "typecheck.h"
+#include "ast.h"	/* node types */
+#include "symtab.h"	/* data types */
+
+#include <stdlib.h>
+#include <stdio.h>
+
+extern int tcDEBUG;
+int type_error = 0;
+int cur_fun = -1;
+
+/* Perform type checking on the given syntax tree "root".
+ * Must be provided with the two corresponding symboltables generated beforehand 
+ * Return zero if no error found, non-zero otherwise.
+ */
+int type_check(flat_symtab var_table, func_table function_table, ast_node root)
+{
+  
+  ast_node temp;
+  ast_node id;	// current ID node involved
+  data_type dtype;
+  func_entry fEntry;
+  symtab_entry entry;
+  int argc;
+  int i;
+
+  switch(root->node_type){
+  case VAR_DECL:
+    id = root->left_child->right_sibling->right_sibling;
+    // check if "ID = expression" or "ID[expression]"
+    temp = root->left_child->right_sibling->right_sibling->right_sibling;
+    if (temp != NULL){	// yes it is
+      dtype = convert_to_dtype(root->left_child->right_sibling->value.string);
+      if (dtype == TYPE_INT || dtype == TYPE_DOUBLE){	// "ID = expression"
+	if(det_expr_type(var_table, function_table, temp) == TYPE_ERROR){
+	  printf("--- error --- TYPE_ERROR was returned at line %d.\n", id->lineNumber);
+	  type_error = 1;
+	}
+	if (temp->static_expr == 1){
+	  entry = lookup_in_flat_table(var_table, 
+				       root->left_child->right_sibling->right_sibling->sn);
+	  entry->static_expr = 1;
+	  //printf("int value: %d\n", temp->expr.int_value);
+	  entry->value.int_value = temp->expr.int_value;
+	  //	  printf("double value: %f\n", temp->expr.double_value);
+	  entry->value.double_value = temp->expr.double_value;
+	}
+      }
+    }
+    temp = root->left_child->right_sibling->right_sibling->left_child;
+    // if ((temp != NULL) && (temp->node_type == IDENTIFIER)){	// ID[expression]
+    if (temp != NULL) {
+      if(det_expr_type(var_table, function_table, temp) != TYPE_INT){
+	printf("--- error --- non-integer size of array at line %d.\n", id->lineNumber);
+	type_error = 1;
+      }
+
+    }
+    // now we are happy at this node
+    break;
+
+  case IF_STMT:
+  case IF_ELSE_STMT:
+  case WHILE_STMT:
+  
+    if(det_expr_type(var_table, function_table, root->left_child) == TYPE_VOID){
+      printf("--- error --- condition-loop-statement expecteds int/double at line %d.\n", 
+	     root->left_child->lineNumber);
+      type_error = 1;
+    }
+  
+    break;
+
+  case DO_WHILE_STMT:
+    if(det_expr_type(var_table, function_table, root->left_child->right_sibling) == TYPE_VOID){
+      printf("--- error --- condition-loop-statement expecteds int/double at line %d.\n", 
+	     root->left_child->lineNumber);
+      type_error = 1;
+    }
+    break;
+
+  case RETURN_STMT:
+    fEntry = retrieve_current_func(function_table, cur_fun);
+    if (fEntry->dtype == TYPE_VOID){
+      if(root->left_child != NULL){
+	printf("--- error --- expected no return value at line %d.\n", root->lineNumber);
+	type_error = 1;
+      }
+    }else{
+      if(root->left_child == NULL){
+	printf("--- error --- expected return value at line %d.\n", root->lineNumber);
+	type_error = 1;
+      }else{
+	if(det_expr_type(var_table, function_table, root->left_child) 
+	   != fEntry->dtype){
+	  printf("--- error --- return value type mismatch at line %d.\n", root->lineNumber);
+	  type_error = 1;
+	}
+      }
+    }
+    break;
+
+  case READ_STMT:
+    entry = lookup_in_flat_table(var_table, root->left_child->sn);
+    if (entry->sclass == STORAGE_CONST){
+      printf("--- error --- attempt to write to a const variable at line %d.\n", root->lineNumber);
+      type_error = 1;
+    }
+    break;
+
+   case CALL:
+    fEntry = lookup_in_functable(function_table, root->left_child->value.string);
+    argc = fEntry->argc;
+    temp = root->left_child->right_sibling;
+    if(temp == NULL){	// no arguments passed in
+      if (argc!=0){
+	printf("--- error --- expected %d argument%s at line %d.\n", argc, argc > 1 ? "s":"", root->lineNumber);	
+	type_error = 1;
+      }
+    }else{	// check arguments one by one
+      temp = temp->left_child;
+      for(i = 0; i < argc; i++){
+	if (temp == NULL){
+	  printf("--- error --- too few arguments at line %d.\n", root->lineNumber);
+	  type_error = 1;
+	  break;
+	}
+	if (fEntry->types[i] != det_expr_type(var_table, function_table, temp)){
+	  if (	
+	      (det_expr_type(var_table, function_table, temp) == TYPE_VOID) 
+	      //||	      ( (det_expr_type(var_table, function_table, temp) == TYPE_INT_ARRAY) && (fEntry->types[i] == TYPE_DOUBLE_ARRAY)) ||
+	      //	      ( (det_expr_type(var_table, function_table, temp) == TYPE_DOUBLE_ARRAY) && (fEntry->types[i] == TYPE_INT_ARRAY)) 
+		){
+	    printf("--- error --- argument type mismatch at line %d.\n", root->lineNumber);
+	    type_error = 1;
+	    break;
+	  }
+	}
+	temp = temp->right_sibling;
+      }
+      if ((temp != NULL) && (i == argc)){
+	printf("--- error --- too many arguments at line %d.\n", root->lineNumber);
+	type_error = 1;
+      }
+    }
+    break;
+
+  case FUNC_DECL:
+    cur_fun = root->left_child->left_child->right_sibling->sn;
+    break;
+    
+  case OP_ASSIGN:
+  case OP_PLUS:
+  case OP_MINUS:
+  case OP_NEG:
+  case OP_TIMES:
+  case OP_DIVIDE:
+  case OP_EQUALS:
+  case OP_MOD:
+  case OP_LESS:
+  case OP_LESSEQ:
+  case OP_GRTER:
+  case OP_GRTEREQ:
+  case OP_NEQ:
+  case OP_AND:
+  case OP_OR:
+  case OP_NOT:
+  case OP_INC_PRE:
+  case OP_DEC_PRE:
+  case OP_INC_POST:
+  case OP_DEC_POST:
+    if (det_expr_type(var_table, function_table, root) == TYPE_ERROR)
+      type_error = 1;
+    break;
+
+  default:	
+   
+   
+    break;
+  }
+
+  // recursively check child nodes
+  for (temp = root->left_child; temp != NULL; temp = temp->right_sibling){
+    if (type_check(var_table, function_table, temp)!=0)
+      type_error = 1;
+  }
+  
+
+  if (type_error == 1)
+    return -1;
+
+  // sub tree passed type checking
+  return 0;
+}
+
+
+/* Determine date type of the given expression */
+data_type det_expr_type(flat_symtab var_table, func_table function_table, ast_node root)
+{
+  data_type t1 = TYPE_VOID, t2 = TYPE_VOID;
+  func_entry fEntry;
+  symtab_entry entry;
+
+  switch(root->node_type){
+  case INT_LITERAL:
+    if(tcDEBUG) printf(" -- trace -- int literal\n");
+    return TYPE_INT;
+
+  case DOUBLE_LITERAL:
+    if(tcDEBUG) printf(" -- trace -- double literal\n");
+    return TYPE_DOUBLE;
+
+  case IDENTIFIER:     
+    // check if array
+    if (root->left_child == NULL){     	// not array
+      if(tcDEBUG) printf(" -- trace -- ID\n");  
+      entry = lookup_in_flat_table(var_table, root->sn);
+      entry = entry->parent;
+      if (entry != NULL){
+	if (entry->static_expr == 1){
+	  root->static_expr = 1;
+	  root->expr_dtype = entry->dtype;
+	  root->expr.int_value = entry->value.int_value;
+	  root->expr.double_value = entry->value.double_value;
+	}
+      }
+      return get_dtype_from_symtab(var_table, root->sn);
+    }
+    else{				// array
+      if(tcDEBUG) printf(" -- trace -- ID array\n");
+
+      entry = lookup_in_flat_table(var_table, root->sn);
+      if ((entry->dtype != TYPE_INT_ARRAY) && (entry->dtype != TYPE_DOUBLE_ARRAY)){
+	printf("--- error --- name indexed not array type at line %d.\n", root->lineNumber);
+	return TYPE_ERROR;
+      }
+      if (det_expr_type(var_table, function_table, root->left_child) != TYPE_INT){
+	printf("--- error --- non-integer subscript at line %d.\n", root->lineNumber);
+	return TYPE_ERROR;
+      }
+      if (root->left_child->expr.int_value < 0){
+	printf("--- error --- expected non-negative array size at line %d.\n", root->lineNumber);
+      }
+      return get_dtype_from_symtab(var_table, root->sn) - 1;	// see how data_type is defined
+    }
+
+ case OP_ASSIGN:
+ 
+    entry = lookup_in_flat_table(var_table, root->left_child->sn);
+    if (entry->sclass == STORAGE_CONST){
+      printf("--- error --- attempt to write to a const variable at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }else{
+      if(det_expr_type(var_table, function_table, root->left_child->right_sibling)
+	 == TYPE_VOID){
+	printf("--- error --- attempt to assign void at line %d.\n", root->lineNumber);	
+        return TYPE_ERROR;
+      }
+    }
+   
+ 
+    entry = lookup_in_flat_table(var_table, root->left_child->sn);
+      if ((entry->dtype == TYPE_INT_ARRAY) || (entry->dtype == TYPE_DOUBLE_ARRAY)){
+	if (root->left_child->left_child == NULL){
+	  printf("--- error --- attemp to assign value to name of array at line %d.\n", root->lineNumber);
+	  return TYPE_ERROR;
+	}
+      }
+
+  case OP_MINUS:
+    if(tcDEBUG) printf(" -- trace -- uminus\n");
+    if (root->left_child->right_sibling == NULL){	// UMINUS
+      return det_expr_type(var_table, function_table, root->left_child);
+    }
+
+    if(tcDEBUG) printf(" -- trace -- minus op\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ((t1 == TYPE_VOID) || (t2 == TYPE_VOID)){
+      printf("--- error --- missing operands at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }else{
+      if ((t1 == TYPE_DOUBLE) || (t2 == TYPE_DOUBLE)){
+	return TYPE_DOUBLE;
+      }
+      else{
+	return TYPE_INT;
+      }
+    }
+
+  case OP_PLUS:
+  case OP_DIVIDE:
+  case OP_TIMES:
+    if(tcDEBUG) printf(" -- trace -- binary op\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ((t1 == TYPE_VOID) || (t2 == TYPE_VOID)){
+      printf("--- error --- missing operands at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }else{
+      if ((t1 == TYPE_DOUBLE) || (t2 == TYPE_DOUBLE))
+	return TYPE_DOUBLE;
+      else
+	return TYPE_INT;
+    }
+
+  case OP_MOD:
+    if(tcDEBUG) printf(" -- trace -- mod\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ((t1 != TYPE_INT) || (t2 != TYPE_INT)){
+      printf("--- error --- expected integer operands at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }
+    else
+      return TYPE_INT;
+
+  case OP_LESS:
+  case OP_LESSEQ:
+  case OP_GRTER:
+  case OP_GRTEREQ:
+  case OP_EQUALS:
+  case OP_NEQ:
+    if(tcDEBUG) printf(" -- trace -- compare\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ( ((t1 == TYPE_VOID) || (t1 == TYPE_INT_ARRAY) || (t1 == TYPE_DOUBLE_ARRAY)) ||
+	 ((t2 == TYPE_VOID) || (t2 == TYPE_INT_ARRAY) || (t2 == TYPE_DOUBLE_ARRAY)) ){
+      printf("--- error --- operand type mismatch at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }else
+      return TYPE_INT;
+
+  case OP_AND:
+  case OP_OR:
+    if(tcDEBUG) printf(" -- trace -- binary logical\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    t2 = det_expr_type(var_table, function_table, root->left_child->right_sibling);
+    if ((t1 == TYPE_VOID) || (t2 == TYPE_VOID)){
+      printf("--- error --- missing operands at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }else{
+      if ((t1 == TYPE_DOUBLE) || (t2 == TYPE_DOUBLE)){
+	printf("--- error --- expected integer operands at line %d.\n", root->lineNumber);
+	return TYPE_ERROR;
+      }
+      else
+	return TYPE_INT;
+    }
+
+  case OP_NOT:
+    if(tcDEBUG) printf(" -- trace -- not\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    if(t1 == TYPE_VOID){
+      printf("--- error --- missing operands at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }else{
+      if (t1 == TYPE_DOUBLE){
+	printf("--- error --- expected integer operand at line %d.\n", root->lineNumber);
+	return TYPE_ERROR;
+      }
+      else
+	return TYPE_INT;
+    }
+
+  case OP_INC_PRE:
+  case OP_INC_POST:
+  case OP_DEC_PRE:
+  case OP_DEC_POST:
+    if(tcDEBUG) printf(" -- trace -- side effect\n");
+    t1 = det_expr_type(var_table, function_table, root->left_child);
+    if (t1 != TYPE_INT){
+      printf("--- error --- expected integer-type variable at line %d.\n", root->lineNumber);
+      return TYPE_ERROR;
+    }else 
+      return TYPE_INT;
+
+  case CALL:
+    if(tcDEBUG) printf(" -- trace -- CALL\n");
+    fEntry = lookup_in_functable(function_table, root->left_child->value.string);
+    return fEntry->dtype;
+
+  default:	/* don't care */
+      return 0;
+  }
+}
+
+/* get data type of the given ID */
+data_type get_dtype_from_symtab(flat_symtab var_table, int sn)
+{
+  return var_table->entries[sn]->dtype;
+}
