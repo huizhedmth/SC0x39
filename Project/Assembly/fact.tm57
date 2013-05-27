@@ -1,0 +1,66 @@
+* This program is a better version of the factorial program on p. 458
+* of Louden.  It prompts the user to enter a number n.  Then it
+* computes n!, and its output tells you that it's printing the value
+* of n!.
+
+.STRING 0 "Enter n: "
+.STRING 10 "! = "
+.STRING 15 "\n"
+
+* Register usage:
+*  r0 holds temporary values.
+*  r1 holds n! as we compute it
+*  r2 holds the constant 1
+*  r3 holds either the address of a character in a string or the loop index
+*  r4 holds n
+
+* Keep the constant 1 in r2.
+0: LDC 2,1(0)		r2 <-- 1
+
+* Print out the prompt string.
+1: LDC 3,0(0)		r3 <-- address of string at dMem[0]
+2: LDB 0,0(3)		r0 <-- next char from string
+3: JEQ 0,3(7)		jump out of loop if terminator
+4: OUTB 0,0,0		print the char
+5: ADD 3,3,2		r3 <-- address of next char
+6: LDA 7,-5(7)		jump back to top of loop
+
+* Read the value of n into r4.
+7: IN 4,0,0		r4 <-- int n from input
+
+* Initialize the result in r1 and the loop index in r3.
+8: LDC 1,1(0)		r1 <-- 1, will hold the result
+9: LDC 3,1(0)		r3 <-- 1, will be the loop index
+
+* Test to see whether loop index > n.
+10: SUB 0,3,4		r0 <-- loop index - n
+11: JGT 0,3(7)		exit loop when loop index > n (go to instr at addr 15)
+
+* This is the body of the loop.
+12: MUL 1,1,3		r1 <-- r1 * loop index
+13: ADD 3,3,2		increment loop index
+14: LDA 7,-5(7)		jump back to top of loop (instr address 10)
+
+* Print output.  Start by printing the value of n.
+15: OUT 4,0,0		print value of n
+
+* Now print the string "! = ".
+16: LDC 3,10(0)		r3 <-- address of string at dMem[10]
+17: LDB 0,0(3)		r0 <-- next char from string
+18: JEQ 0,3(7)		jump out of loop if terminator
+19: OUTB 0,0,0		print the char
+20: ADD 3,3,2		r3 <-- address of next char
+21: LDA 7,-5(7)		jump back to top of loop
+
+* Now print the result of computing n!.
+22: OUT 1,0,0		print value of n!
+
+* Now print the string that contains just the newline character.
+23: LDC 3,15(0)		r3 <-- address of string at dMem[15]
+24: LDB 0,0(3)		r0 <-- next char from string
+25: JEQ 0,3(7)		jump out of loop if terminator
+26: OUTB 0,0,0		print the char
+27: ADD 3,3,2		r3 <-- address of next char
+28: LDA 7,-5(7)		jump back to top of loop
+
+29: HALT 0,0,0		done

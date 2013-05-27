@@ -21,6 +21,7 @@ static int g_check_proto = 0;	/* internal use */
 
 static int g_param_addr;	/* area offset */
 static int g_local_addr;
+
 int sym_error = 0;		/* non-zero means sym_error errors detected */
 /*
  * Functions for symnodes.

@@ -31,7 +31,7 @@ extern int qdDebug;
 quad g_array[MAXQUADSIZE];
 
 /* Next quad index, also the size of quad array */
-static int next_quad = 0;
+int next_quad = 0;
 
 /* Next available temp var */
 static int next_free_temp = 0;
@@ -258,7 +258,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     id_node = root->left_child->left_child->right_sibling;
     source_addr = next_quad;
 
-    // build and insert quad. mark: this is not neccessary
+    // build and insert quad. 
     opcode = FUNC_BODY;
     op1 = create_operand(OP_TYPE_INT, TYPE_INT, (double)source_addr);	// line number of this quad    
     op2 = create_operand(OP_TYPE_STR, TYPE_INT, (double)id_node->sn);	

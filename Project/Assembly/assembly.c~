@@ -1,0 +1,179 @@
+/* assembly.c
+ *
+ * Generate target codes for TM57 from quads
+ *
+ * by Huizhe Li, Master Student, Dartmouth College
+ */
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include"assembly.h"
+#include"quad.h"
+
+#define PC_REG 7
+#define SP 6
+#define FP 5
+#define STACK_BOTTOM 4	// since amount of mem cannot be known until runtime, keep that info in register 4
+
+const int ignore = 0;	// place it whenever an instruction ignores an operand
+
+extern quad g_array[];	// the quad array
+extern int next_quad;	// total number of quads
+int asm_next_quad = 0;	// next quad to be processed
+int next_instr = 0;
+
+asm_instr instructions[MAXINSTR];
+
+char* asm_opcode_str[] = {
+  "HALT",
+  "IN",
+  "OUT",
+  "ADD",
+  "SUB",
+  "MUL",
+  "DIV",
+  "LD",
+  "LDA",
+  "LDC",
+  "ST",
+  "JLT",
+  "JLE",
+  "JGE",
+  "JGT",
+  "JEQ",
+  "JNE",
+
+  "MOD",
+  "ADDF",
+  "SUBF",
+  "MULF",
+  "DIVF",
+  "CVTIF",
+  "CVTFI",
+  "LDF",
+  "STF",
+  "JFLT",
+  "JFLE",
+  "JFGE",
+  "JFGT",
+  "JFEQ",
+  "JFNE",
+  "INF",
+  "OUTF",
+  "INB",
+  "OUTB",
+  "LDFC",
+  "LDB",
+  "STB",
+
+  ".INT",
+  ".STRING",
+  ".FILL",
+  ".FLOAT"
+};
+
+void gen_assembly()
+{
+  int no_quads;	// number of quads in total
+  int next_instr = 0;	
+  int val;
+
+  int i;	// loop var
+  quad this_quad;	// current quad being processed
+  
+  no_quads = next_quad - 1;
+
+  // initialization before generating assembly for quads
+  
+  // init sp to DADDR_SIZE
+  
+
+
+
+
+
+
+
+
+
+
+  for (i = 0; i < no_quads; i++){	// generate codes for each quads
+    this_quad = g_array[i];
+    gen_asm_from_quad(this_quad);
+  }
+}
+
+
+
+/* Generate assembly code for a given quad, insert them into the global, and modify counters accordingly */
+gen_asm_from_quad(quad this_quad)
+{
+  switch(this_quad->op){
+  case START:	// call main, which receives no parameters
+    
+    
+    break;
+  default:
+    printf("another one coming!\n");
+  }
+  
+}
+
+
+
+/* Create an instrction with 3 integer operands */
+asm_instr create_int_instr(asm_opcode opcode, int val1, int val2, int val3)
+{
+  asm_operand op1, op2, op3;
+  
+  op1 = create_asm_operand(ASM_OPERAND_TYPE_INT);
+  op1->value.int_value = val1;
+  op2 = create_asm_operand(ASM_OPERAND_TYPE_INT);
+  op2->value.int_value = val2;
+  op3 = create_asm_operand(ASM_OPERAND_TYPE_INT);
+  op3->value.int_value = val3;
+ 
+  return create_asm_instr(opcode, op1, op2, op3);
+}
+  
+
+/* Create an instr struct */
+asm_instr create_asm_instr(asm_opcode opcode, asm_operand op1, asm_operand op2, asm_operand op3)
+{
+  asm_instr instr = (asm_instr)malloc(sizeof(struct asm_instr));
+  
+  instr->asm_ln = next_instr++;
+  instr->opcode = opcode;
+  instr->operands[1] = op1;
+  instr->operands[2] = op2;
+  instr->operands[3] = op3;
+
+  return instr;
+}
+
+/* Create an operand struct, need to specify value */
+asm_operand create_asm_operand(asm_operand_type type)
+{
+  asm_operand op = (asm_operand)malloc(sizeof(struct asm_operand));
+  op-> type;
+  return op;
+}
+
+/* Print all instructions */
+void print_instructions()
+{
+  int i; 
+  int j;
+
+  for (i = 0; i < next_instr; i++){
+    // line number
+    printf("%d:\t", instructions[i]->asm_ln);
+
+    // opcode
+    printf("%s\t", asm_opcode_str[instructions[i]->opcode]);
+
+    for (j = 0; j < 2; j++)
+      print_operand(instructions[i]->operands[j]);
+  }
+}

@@ -3,7 +3,7 @@
  * Quad structure and func prototype definition.
  *
  * Details on how intermediate quads will be used to directly generate assembly 
- * (without refering to any other information) can be found at the beginning of 
+ * (without refering to any other information) can be found at the end of 
  * assembly.h
  *
  * by Huizhe Li, Master Student, Dartmouth College
@@ -17,7 +17,7 @@
 
 #define MAXQUADSIZE 2048	/* maximum number of quads */
 #define MAXTEMP 100		/* maximum number of temp vars */
-#define TEMP_BASE_ADDR 4000	/* where temp vars are saved */
+#define TEMP_BASE_ADDR 10000	/* where temp vars are saved */
 #define GLOBAL_BASE_ADDR TEMP_BASE_ADDR - MAXTEMP*4000	/* where global vars are saved */
 
 #define MAXFUNCNUM 100

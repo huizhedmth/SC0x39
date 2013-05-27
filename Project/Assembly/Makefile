@@ -19,8 +19,11 @@ CFLAG = -w
 
 target: $(TARGET) 
 
-$(TARGET): driver.o  parser.o lexer.o ast.o symtab.o typecheck.o address.o quad.o
-	@$(CC) $(CFLAG) -o $(TARGET) driver.o lexer.o parser.o ast.o symtab.o address.o typecheck.o quad.o -lfl
+$(TARGET): driver.o  parser.o lexer.o ast.o symtab.o typecheck.o address.o quad.o assembly.o
+	@$(CC) $(CFLAG) -o $(TARGET) driver.o lexer.o parser.o ast.o symtab.o address.o typecheck.o quad.o assembly.o -lfl
+
+assembly.o: assembly.c
+	@$(CC) $(CFLAG) -o assembly.o -c assembly.c
 
 test_quad.o: test_quad.c
 	@$(CC) $(CFLAG) -o test_quad.o -c test_quad.c

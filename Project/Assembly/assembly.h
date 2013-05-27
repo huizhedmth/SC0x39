@@ -12,4 +12,125 @@
  * by Huizhe Li, Master Student, Dartmouth College
  */
 
+#ifndef ASSEMBLY_H
+#define ASSEMBLY_H
 
+#include "quad.h"
+
+#define MAXINSTR 10000
+
+#define OPCODE_TYPE_RO 1000
+#define OPCODE_TYPE_RM 1001
+
+typedef enum {
+  ASM_HALT,
+  ASM_IN,
+  ASM_OUT,
+  ASM_ADD,
+  ASM_SUB,
+  ASM_MUL,
+  ASM_DIV,
+  ASM_LD,
+  ASM_LDA,
+  ASM_LDC,
+  ASM_ST,
+  ASM_JLT,
+  ASM_JLE,
+  ASM_JGE,
+  ASM_JGT,
+  ASM_JEQ,
+  ASM_JNE,
+  
+  ASM_MOD,
+  ASM_ADDF,
+  ASM_SUBF,
+  ASM_MULF,
+  ASM_DIVF,
+  ASM_CVTIF,
+  ASM_CVTFI,
+  ASM_LDF,
+  ASM_STF,
+  ASM_JFLT,
+  ASM_JFLE,
+  ASM_JFGE,
+  ASM_JFGT,
+  ASM_JFEQ,
+  ASM_JFNE,
+  ASM_INF,
+  ASM_OUTF,
+  ASM_INB,
+  ASM_OUTB,
+  ASM_LDFC,
+  ASM_LDB,
+  ASM_STB,
+
+  ASM_INT,
+  ASM_STRING,
+  ASM_FILL,
+  ASM_FLOAT
+} asm_opcode;
+
+typedef enum {
+  ASM_OPERAND_TYPE_INT,
+  ASM_OPERAND_TYPE_DOUBLE,
+  ASM_OPERAND_TYPE_STRING
+}asm_operand_type;
+
+struct asm_operand{
+  asm_operand_type type;
+  union{
+    int int_value;
+    double double_value;
+    char* string;	// for .STRING
+  }value;
+};
+  
+typedef struct asm_operand *asm_operand;
+
+struct asm_instr{
+  asm_opcode opcode;
+  asm_operand operands[3];
+  int opcode_type;
+  int asm_ln;	// line number in target code
+  int qd_ln;	// line number of quad that produces this instruction
+};
+
+typedef struct asm_instr *asm_instr;
+
+/* An entry that contains info needed to patch a line */
+struct patch_entry{
+  int asm_ln;		// line number in assembly instructions
+  int index;		// index of operand to be patched
+  int quad_ln;		// line number of the quad that is supposed to know how to patch it
+};
+typedef struct patch_entry patch_entry;
+
+typedef struct patch_table{
+  patch_entry entries[MAXINSTR];
+  int size;
+}patch_table;
+  
+/******************************* function prototype *********************************/
+
+/* Create an operand struct, need to specify value */
+asm_operand create_asm_operand(asm_operand_type type);
+
+/* Create an instrction with 3 integer operands */
+asm_instr create_int_instr(int opcode_type, asm_opcode opcode, int op1, int op2, int op3);
+
+/* Create an instr struct */
+asm_instr create_asm_instr(int opcode_type, asm_opcode opcode, asm_operand op1, asm_operand op2, asm_operand op3);
+
+/* Generate assembly code for a given quad */
+void gen_asm_from_quad(quad this_quad);
+
+/* Print all instructions */
+void print_instructions();
+
+/* Print an operand */
+static void print_operand(asm_operand op);
+
+/* Patch an instruction */
+void patch_instruction(int asm_ln, int index, int val);
+
+#endif // ASSEMBLY_H

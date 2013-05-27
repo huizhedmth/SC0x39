@@ -11,8 +11,6 @@
 #include <stdlib.h>
 #include "symtab.h"
 #include "quad.h"
-#include "assembly.h"
-
 
 extern ast_node root;
 extern void yyset(FILE*);
@@ -123,7 +121,7 @@ int main(int argc, char** argv)
   // generate target code
   gen_assembly();
   
-  if (print_trace) printf(" --- c57c --- assembly generated\n");
+  printf(" --- c57c --- assembly generated\n");
 
   // print data structures
   if(print_t == 1)
@@ -135,6 +133,5 @@ int main(int argc, char** argv)
   if(print_q == 1)   
     print_code();
  
-  print_instructions();
   return 0;
 } 

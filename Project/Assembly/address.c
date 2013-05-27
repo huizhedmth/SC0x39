@@ -13,7 +13,8 @@
 #include <stdio.h>
 
 static int local_addr = 0;
-int global_addr = 3200;	// 4000 - 8*100, since 100 temps
+int global_addr = 5000;	// 4000 - 8*100, since 100 temps
+int no_globals = 0;	// total number of globals
 static cur_fun = -1;
 
 /* Determine local and global var addresses */
@@ -43,6 +44,7 @@ void comp_addr(flat_symtab var_table, func_table function_table, ast_node root)
       }
       entry->addr = local_addr;
     }else{	// global
+      no_globals++;
       if ((entry->dtype == TYPE_INT) || (entry->dtype == TYPE_DOUBLE)){
 	global_addr -= 8;
       }else if  ((entry->dtype == TYPE_INT_ARRAY) || (entry->dtype == TYPE_DOUBLE_ARRAY)){
