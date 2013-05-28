@@ -1,4 +1,15 @@
 void main(void)
 {
-  print "hello, world\n";
+  int a[10];
+  a[1] = 2;
+  a[4] = 2;
+  a[a[1]] = 4;
+
+  print a[1];
+  print a[2];
+  print a[a[1]];
+  print a[4];
+  
 }
+
+

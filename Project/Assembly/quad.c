@@ -23,6 +23,7 @@
 #define DEC_PRE_FORM 1002
 #define DEC_POST_FORM 1003
 
+extern FILE* out;
 
 /* Debug flag */
 extern int qdDebug;
@@ -93,17 +94,10 @@ char* op_str[] = {
   "JFNE",
 
   "NOT",
-  "PREINC",
-  "INCPOST",
-  "PREDEC",
-  "DECPOST",
-
-  "ASSNA",
+ 
   "ASSN",
+  "ASSNF",
 
-
-  "IF_FALSE",
-  "IF_TRUE",
   "GOTO",
 
   "FUNC_CALL",
@@ -112,13 +106,11 @@ char* op_str[] = {
   "PUSHFP",
   "POP",
   "RET",
-
-  "RDIA",
+  
   "RDI",
-  "RDFA",
   "RDF",
-  "RDBA",
-  "RDB",
+  
+  
   "PRINTI",
   "PRINTF",
   "PRINTB",
@@ -127,7 +119,9 @@ char* op_str[] = {
   "FTOI",
 
   "FUNC_BODY",
-  "START"
+  "START",
+  
+  "GROW"
     };
 
 /* Insert a quad to backpatch_queue */
@@ -224,6 +218,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     if(qdDebug == 1)    printf("--- trace --- VAR_DECL\n");
     expr_node =  root->left_child->right_sibling->right_sibling->right_sibling;
     id_node = root->left_child->right_sibling->right_sibling;
+
     if (expr_node != NULL){	// var = expr, yeah.
       // do coersion if necessary
       op1 = gen_code(var_table, function_table, id_node);
@@ -241,11 +236,21 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
       }
 
       // now ready to do the assignment!
-      if ((op1->dtype == TYPE_INT_ARRAY) || (op1->dtype == TYPE_DOUBLE_ARRAY))
+      if (op1->dtype <= TYPE_INT_ARRAY){
 	insert_quad(create_quad(ASSN, op1, op_temp1, NULL));	
-      else if ((op1->dtype == TYPE_INT) || (op1->dtype == TYPE_DOUBLE))
-	insert_quad(create_quad(ASSNA, op1, op_temp1, NULL));	
+      }else{
+	insert_quad(create_quad(ASSNF, op1, op_temp1, NULL));	
+      }	
+
     }
+
+    // generate stack ajustment quad
+    if ((id_node->left_child == NULL) || (id_node->right_sibling != NULL) ){	// grow stack by 8 bytes
+      insert_quad(create_quad(GROW, NULL, NULL, NULL));
+    }else{	// array definition
+      op1 = gen_code(var_table, function_table, id_node->left_child);	// evaluate array size
+      insert_quad(create_quad(GROW, op1, NULL, NULL));			// grow stack by op1 * 8 bytes
+    }      
     break;
 	
   case FUNC_DECL:	// remember function entry address by creating a FUNC_BODY quad
@@ -313,50 +318,31 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     // retrieve info
     entry = var_table->entries[root->sn];
     dtype = entry->dtype;
-    if (strcmp(entry->id, "c")==0){
-      //  printf("dtype: %d\n", dtype);
-    }
     source_addr = var_table->entries[root->sn]->addr;
 
-    if (root->left_child != NULL){	// an array. type check guarentees that it's not non-integer indexed
-      // if the name comes from a function param, then its value contains the actual address
-      // in this case we have to dereference the value
+    if (root->left_child != NULL){    
 
-      // check if this id is a param
-      flag_param = 0;
-      if(cur_fun >=0){
-	fEntry = function_table->entries[cur_fun];
-	for (i = 0; i < fEntry->argc; i++){
-	  if (strcmp(root->value.string, fEntry->args[i])==0){
-	    flag_param = 1;
-	    break;
-	  }
-	}
-      }
-  	
       // generate code for expression
       op1 = gen_code(var_table, function_table, root->left_child);
 	
       // calculate address offset, and add it to source_addr   
       // create a temp to store the final address
-      op_temp1 = create_operand(OP_TYPE_ID, dtype, get_temp_addr(next_temp()));      
+      op_ret = create_operand(OP_TYPE_PT, dtype, get_temp_addr(next_temp()));      
+
       // compute offset to op_temp1
+      op_temp1 = create_operand(OP_TYPE_ID, dtype, get_temp_addr(next_temp()));      
       op2 = create_operand(OP_TYPE_INT, TYPE_INT, (double)8);
       insert_quad(create_quad(MUL, op_temp1, op1, op2));
+
       // now op_temp1 has the right offset, add it with source_addr
-      if (flag_param == 0)
-	op2 = create_operand(OP_TYPE_INT, TYPE_INT, (double)source_addr); // directly store source_addr to op2
-      else
-	op2 = create_operand(OP_TYPE_ID, dtype, (double)source_addr); // dereference source_addr to op2
+      op2 = create_operand(OP_TYPE_INT, dtype, (double)source_addr); // dereference source_addr to op2
 
       // now compute the final address to op_temp1
-      insert_quad(create_quad(ADD, op_temp1, op2, op_temp1));
+      insert_quad(create_quad(ADD, op_ret, op2, op_temp1));
+    
       
-      // return op_temp1
-      op_ret = op_temp1;
-  
+      
     }else{	// not an array - simple
-      //     printf("mark: dtype: %d.\n", dtype);
       op_ret = create_operand(OP_TYPE_ID, dtype, (double)source_addr);
     }
 
@@ -393,12 +379,10 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
 	// check parameter type
 	dtype = fEntry->types[i++];
 	if ((op_temp1->dtype == TYPE_INT) && (dtype == TYPE_DOUBLE)){	// widen argument
-	    printf("mark 1\n");
 	  op_temp2 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, get_temp_addr(next_temp()));
 	  insert_quad(create_quad(ITOF, op_temp2, op_temp1, NULL));	
 	  op_temp1 = op_temp2;
 	}else if  ((op_temp1->dtype == TYPE_DOUBLE) && (dtype == TYPE_INT)){	// coerce argument
-	    printf("mark 2\n");
 	  op_temp2 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, get_temp_addr(next_temp()));
 	  insert_quad(create_quad(FTOI, op_temp2, op_temp1, NULL));	
 	  printf("--- Warning --- implicitly cast double to int at line %d.\n", root->lineNumber);
@@ -636,7 +620,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
 
     // ----------------------------- I/O ------------------------------//
   case PRINT_STMT:
-    // may print int, double or string
+     // may print int, double or string
     if (root->left_child->node_type == STR_LITERAL){	// string! yeah
       // create operand holding the string constant
       op1 = create_operand(OP_TYPE_STR, TYPE_VOID, (double)0);
@@ -645,25 +629,19 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
       insert_quad(create_quad(PRINTB, op1, NULL, NULL));
     }else{
       op2 = gen_code(var_table, function_table, root->left_child);
-      if (op2->dtype == TYPE_INT){			// integer
-	op1 = create_operand(OP_TYPE_ID, TYPE_INT, (double)op2->value.int_value);
-	insert_quad(create_quad(PRINTI, op1, NULL, NULL));
-      }else{						// double
-	op1 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, op2->value.double_value);
-	insert_quad(create_quad(PRINTF, op1, NULL, NULL));
+      if (op2->dtype <= TYPE_INT_ARRAY){
+	insert_quad(create_quad(PRINTI, op2, NULL, NULL));
+      }else if (op2->dtype >= TYPE_DOUBLE){
+	insert_quad(create_quad(PRINTF, op2, NULL, NULL));
       }
     }
     return NULL;
       
   case READ_STMT:
     op1 = gen_code(var_table, function_table, root->left_child);	// compute var address
-    if (op1->dtype == TYPE_INT)
-      insert_quad(create_quad(RDIA, op1, NULL, NULL));
-    else if (op1->dtype == TYPE_INT_ARRAY)
+    if (op1->dtype <= TYPE_INT_ARRAY)
       insert_quad(create_quad(RDI, op1, NULL, NULL));
-    else if (op1->dtype == TYPE_DOUBLE)
-      insert_quad(create_quad(RDFA, op1, NULL, NULL));
-    else if (op1->dtype == TYPE_DOUBLE_ARRAY)
+    else if (op1->dtype >= TYPE_DOUBLE)
       insert_quad(create_quad(RDF, op1, NULL, NULL));
     else printf("--- internal error --- should not happen\n");
     return NULL;
@@ -679,17 +657,17 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     else{						// unary
       op1 = gen_code(var_table, function_table, root->left_child);
       // get -op1 
-      if (op1->dtype == TYPE_INT){ // double
+      if (op1->dtype <= TYPE_INT_ARRAY){ 
 	op_temp1 = create_operand(OP_TYPE_ID, TYPE_INT, get_temp_addr(next_temp()));
 	op2 = create_operand(OP_TYPE_INT, TYPE_INT, (double)0);
 	insert_quad(create_quad(SUB, op_temp1, op2, op1));
 	return op_temp1;
-      }else{	// double
+      }else{	
 	op_temp1 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, get_temp_addr(next_temp()));
 	op2 = create_operand(OP_TYPE_DOUBLE, TYPE_DOUBLE, (double)0);
 	insert_quad(create_quad(SUBF, op_temp1, op2, op1));
 	return op_temp1;
-      }
+      }     
     }
   case OP_TIMES:
     return gen_code_biop(var_table, function_table, root, MUL, MULF);
@@ -723,16 +701,16 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     return gen_code_self(var_table, function_table, root, DEC_POST_FORM);
 
   case OP_ASSIGN:	// may need to do coersion
-    if(qdDebug == 1)    printf("--- trace --- OP_ASSIGN\n");
+   if(qdDebug == 1)    printf("--- trace --- OP_ASSIGN\n");
     
     // do coersion if necessary
     op1 = gen_code(var_table, function_table, root->left_child);
     op2 = gen_code(var_table, function_table, root->left_child->right_sibling);
-
+   
     if ((op1->dtype >= TYPE_DOUBLE) && (op2->dtype <= TYPE_INT_ARRAY)){	// promote op2
       op_temp1 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
       insert_quad(create_quad(ITOF, op_temp1, op2, NULL));
-    }else if ((op1->dtype <= TYPE_INT_ARRAY) && (op2->dtype >= TYPE_DOUBLE)){	// narrow op2
+    }else if ((op1->dtype <= TYPE_INT_ARRAY) && (op2->dtype >= TYPE_DOUBLE)){	// narrow op2   
       op_temp1 = create_operand(OP_TYPE_ID, TYPE_INT, (double) get_temp_addr(next_temp()));
       insert_quad(create_quad(FTOI, op_temp1, op2, NULL));
       printf("--- Warning --- implicitly cast double to int at line %d.\n", root->lineNumber);
@@ -741,11 +719,12 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     }
 
     // now ready to do the assignment!
-    if ((op1->dtype == TYPE_INT_ARRAY) || (op1->dtype == TYPE_DOUBLE_ARRAY))
+    if (op1->dtype <= TYPE_INT_ARRAY)
       insert_quad(create_quad(ASSN, op1, op_temp1, NULL));	
-    else if ((op1->dtype == TYPE_INT) || (op1->dtype == TYPE_DOUBLE))
-      insert_quad(create_quad(ASSNA, op1, op_temp1, NULL));	
-    return op_temp1;
+    else
+      insert_quad(create_quad(ASSNF, op1, op_temp1, NULL));	
+ 
+     return op1;
 
     // AND, OR, NOT
   case OP_NOT:	
@@ -760,11 +739,11 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     // forced to be integer by type checker
     test = next_quad;
     insert_quad(create_quad(JEQ, op3, NULL, NULL));	// need backpatch
-    insert_quad(create_quad(ASSNA, op_temp1, op1, NULL));   
+    insert_quad(create_quad(ASSN, op_temp1, op1, NULL));   
     jmp = next_quad;	
     insert_quad(create_quad(GOTO, NULL, NULL, NULL));   	// need backpatch
     patch_quad(test, 2, next_quad);
-    insert_quad(create_quad(ASSNA, op_temp1, op2, NULL));   	
+    insert_quad(create_quad(ASSN, op_temp1, op2, NULL));   	
     patch_quad(jmp, 1, next_quad);
     
     return op_temp1;
@@ -785,7 +764,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     op1 = create_operand(OP_TYPE_INT, TYPE_INT, (double)0);
     op2 = create_operand(OP_TYPE_INT, TYPE_INT, (double)1);
 
-    insert_quad(create_quad(ASSNA, op_temp1, op2, NULL));
+    insert_quad(create_quad(ASSN, op_temp1, op2, NULL));
     jmp = next_quad;
     insert_quad(create_quad(GOTO, NULL, NULL, NULL));	// need backpatch
 
@@ -793,7 +772,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     patch_quad(testR, 2, next_quad);
 
     // if either test fails, jump to here
-    insert_quad(create_quad(ASSNA, op_temp1, op1, NULL));    
+    insert_quad(create_quad(ASSN, op_temp1, op1, NULL));    
 
     // if both tests pass, jump to here
     patch_quad(jmp, 1, next_quad);
@@ -816,7 +795,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     op1 = create_operand(OP_TYPE_INT, TYPE_INT, (double)0);
     op2 = create_operand(OP_TYPE_INT, TYPE_INT, (double)1);
 
-    insert_quad(create_quad(ASSNA, op_temp1, op1, NULL));
+    insert_quad(create_quad(ASSN, op_temp1, op1, NULL));
     jmp = next_quad;
     insert_quad(create_quad(GOTO, NULL, NULL, NULL));	// need backpatch
 
@@ -824,7 +803,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     patch_quad(testR, 2, next_quad);
 
     // if either test fails, jump to here
-    insert_quad(create_quad(ASSNA, op_temp1, op2, NULL));    
+    insert_quad(create_quad(ASSN, op_temp1, op2, NULL));    
 
     // if both tests pass, jump to here
     patch_quad(jmp, 1, next_quad);
@@ -906,22 +885,26 @@ int get_temp_addr(int no_temp)
 void print_operand(operand opx)
 {
   if (opx == NULL){
-    printf("N/A");
+    fprintf(out,"N/A");
     return;
   }
   
-  switch(opx->op_type){
+ switch(opx->op_type){
   case OP_TYPE_INT:
-    printf("int: %d", opx->value.int_value);
+      fprintf(out,"int: %d", opx->value.int_value);
     break;
   case OP_TYPE_DOUBLE:
-    printf("double: %f", opx->value.double_value);
+    fprintf(out,"double: %f", opx->value.double_value);
     break;
   case OP_TYPE_ID:
-    printf("addr: %d", opx->value.id_addr);
+    fprintf(out,"addr: %d", opx->value.id_addr);
     break;
   case OP_TYPE_STR:
-    printf("str: %s", opx->value.string_value);
+    fprintf(out,"str: %s", opx->value.string_value);
+    break;
+ case OP_TYPE_PT:
+   fprintf(out, "pointer: %d", opx->value.int_value);
+    break;
   default:
     break;
   }
@@ -930,24 +913,24 @@ void print_operand(operand opx)
 
 void print_quad(quad qd)
 {
-  //static int i = 0;
-  //printf("index: %d  ", i++);
+  fprintf(out,"* %d  ", qd->index);
 
-  // test quad index
-  printf("index: %d  ", qd->index);
-  printf("( %s,\t", op_str[qd->op]);
+  fprintf(out,"( %s,\t", op_str[qd->op]);
   print_operand(qd->op1);
-  printf(",\t");
+
+  fprintf(out,",\t");
   print_operand(qd->op2);
-  printf(",\t");
+
+  fprintf(out,",\t");
   print_operand(qd->op3);
-  printf(" )\n");
+
+  fprintf(out," )\n");
 }
 
 void print_code()
 {
   int i;
-  printf( "--------------------- intermediate code ----------------------\n");
+
   for (i = 0; i < next_quad; i++){
     print_quad(g_array[i]);
   }
@@ -962,36 +945,30 @@ operand gen_code_biop(flat_symtab var_table, func_table function_table, ast_node
   
   op1 = gen_code(var_table, function_table, root->left_child);
   op2 = gen_code(var_table, function_table, root->left_child->right_sibling);
-  source_addr = get_temp_addr(next_temp());
+  op_ret = create_operand(OP_TYPE_ID, TYPE_INT,  get_temp_addr(next_temp()));
 
   // deal with coersion by check types. four combinations in total
-  if (op1->dtype == TYPE_INT){
-    if (op2->dtype == TYPE_INT){
-      op_ret = create_operand(OP_TYPE_ID, TYPE_INT, (double) source_addr);
+  if ((op1->dtype <= TYPE_INT_ARRAY) && (op2->dtype >= TYPE_DOUBLE)){	// promote op1
+    // create new temp 
+    op_temp1 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
+    // promote the temp: get double value from op1 and save it into temp
+    insert_quad(create_quad(ITOF, op_temp1, op1, NULL));
+    // ready to add: op2 + op_temp1 => op_ret
+    op_ret->dtype = TYPE_DOUBLE;
+    insert_quad(create_quad(fop, op_ret, op_temp1, op2));
+  }else if  ((op2->dtype <= TYPE_INT_ARRAY) && (op1->dtype >= TYPE_DOUBLE)){
+    op_temp1 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
+    insert_quad(create_quad(ITOF, op_temp1, op2, NULL));
+    op_ret->dtype = TYPE_DOUBLE;
+    insert_quad(create_quad(fop, op_ret, op_temp1, op1));
+  }else {
+    if (op1->dtype <= TYPE_INT_ARRAY)
       insert_quad(create_quad(op, op_ret, op1, op2));
-    }else{	// promote op1 to double, need a new temp
-      // create new temp 
-      op_temp1 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
-	
-      // promote the temp: get double value from op1 and save it into temp
-      insert_quad(create_quad(ITOF, op_temp1, op1, NULL));
-	
-      // ready to add: op2 + op_temp1 => op_ret
-      op_ret = create_operand(OP_TYPE_ID, TYPE_DOUBLE, (double)source_addr);
-      insert_quad(create_quad(fop, op_ret, op_temp1, op2));
-	
-    }
-  }else{
-    if (op2->dtype == TYPE_INT){// promote op2 to double, similar as above
-      op_temp1 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, (double) get_temp_addr(next_temp()));
-      insert_quad(create_quad(ITOF, op_temp1, op2, NULL));
-      op_ret = create_operand(OP_TYPE_ID, TYPE_DOUBLE,  (double)source_addr);
-      insert_quad(create_quad(fop, op_ret, op1, op_temp1));
-    }else{	// both double, no promotion needed
-      op_ret = create_operand(OP_TYPE_ID, TYPE_DOUBLE, (double)source_addr);
+    else{
+      op_ret->dtype = TYPE_DOUBLE;
       insert_quad(create_quad(fop, op_ret, op1, op2));
     }
-  }	
+  }
 	
   return op_ret;    
 }
@@ -1016,31 +993,31 @@ operand gen_code_reop(flat_symtab var_table, func_table function_table, ast_node
   // sub them!
   
   // check dtype
-  if ((op1->dtype == TYPE_INT) && (op2->dtype == TYPE_INT)){	// easy part
+  if ((op1->dtype <= TYPE_INT_ARRAY) && (op2->dtype <= TYPE_INT_ARRAY)){	// easy part
     insert_quad(create_quad(SUB, temp, op1, op2));
     test = next_quad;	// save index of next quad before hand
     insert_quad(create_quad(op, temp, NULL, NULL)); 	// need backpatch
-    insert_quad(create_quad(ASSNA, temp, zero, NULL));
+    insert_quad(create_quad(ASSN, temp, zero, NULL));
     jumpQ = next_quad;
     insert_quad(create_quad(GOTO, NULL, NULL, NULL));	// need backpatch
     // patch "test"
     patch_quad(test, 2, next_quad);
-    insert_quad(create_quad(ASSNA, temp, one, NULL));	
+    insert_quad(create_quad(ASSN, temp, one, NULL));	
     // patch "jumpQ"
     patch_quad(jumpQ, 1, next_quad);
-  } else if ((op1->dtype == TYPE_DOUBLE) && (op2->dtype == TYPE_DOUBLE)){	// easy part
+  } else if ((op1->dtype >= TYPE_DOUBLE) && (op2->dtype >= TYPE_DOUBLE)){	// easy part
     insert_quad(create_quad(SUBF, temp, op1, op2));
     test = next_quad;	// save index of next quad before hand
     insert_quad(create_quad(fop, temp, NULL, NULL)); 	// need backpatch
-    insert_quad(create_quad(ASSNA, temp, zero, NULL));
+    insert_quad(create_quad(ASSN, temp, zero, NULL));
     jumpQ = next_quad;
     insert_quad(create_quad(GOTO, NULL, NULL, NULL));	// need backpatch
     // patch "test"
     patch_quad(test, 2, next_quad);
-    insert_quad(create_quad(ASSNA, temp, one, NULL));	
+    insert_quad(create_quad(ASSN, temp, one, NULL));	
     // patch "jumpQ"
     patch_quad(jumpQ, 1, next_quad);
-  } else if (op1->dtype == TYPE_INT){	// need to promote op1 to double
+  } else if (op1->dtype <= TYPE_INT_ARRAY){	// need to promote op1 to double
     temp2 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, get_temp_addr(next_temp()));
     insert_quad(create_quad(ITOF, temp2, op1, NULL));	// promote op1 and save to temp2
 
@@ -1048,28 +1025,28 @@ operand gen_code_reop(flat_symtab var_table, func_table function_table, ast_node
     insert_quad(create_quad(SUBF, temp, temp2, op2));
     test = next_quad;	// save index of next quad before hand
     insert_quad(create_quad(fop, temp, NULL, NULL)); 	// need backpatch
-    insert_quad(create_quad(ASSNA, temp, zero, NULL));
+    insert_quad(create_quad(ASSN, temp, zero, NULL));
     jumpQ = next_quad;
     insert_quad(create_quad(GOTO, NULL, NULL, NULL));	// need backpatch
     // patch "test"
     patch_quad(test, 2, next_quad);
-    insert_quad(create_quad(ASSNA, temp, one, NULL));	
+    insert_quad(create_quad(ASSN, temp, one, NULL));	
     // patch "jumpQ"
     patch_quad(jumpQ, 1, next_quad);
   } else { 	// need to promote op2 to double
     temp2 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, get_temp_addr(next_temp()));
-    insert_quad(create_quad(ITOF, temp2, op2, NULL));	// promote op1 and save to temp2
+    insert_quad(create_quad(ITOF, temp2, op2, NULL));	// promote op2 and save to temp2
 
     // now everything is the same as before
-    insert_quad(create_quad(SUBF, temp, op1, temp2));
+    insert_quad(create_quad(SUBF, temp, temp2, op1));
     test = next_quad;	// save index of next quad before hand
     insert_quad(create_quad(fop, temp, NULL, NULL)); 	// need backpatch
-    insert_quad(create_quad(ASSNA, temp, zero, NULL));
+    insert_quad(create_quad(ASSN, temp, zero, NULL));
     jumpQ = next_quad;
     insert_quad(create_quad(GOTO, NULL, NULL, NULL));	// need backpatch
     // patch "test"
     patch_quad(test, 2, next_quad);
-    insert_quad(create_quad(ASSNA, temp, one, NULL));	
+    insert_quad(create_quad(ASSN, temp, one, NULL));	
     // patch "jumpQ"
     patch_quad(jumpQ, 1, next_quad);
   }

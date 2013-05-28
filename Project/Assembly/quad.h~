@@ -2,6 +2,10 @@
  *
  * Quad structure and func prototype definition.
  *
+ * Details on how intermediate quads will be used to directly generate assembly 
+ * (without refering to any other information) can be found at the end of 
+ * assembly.h
+ *
  * by Huizhe Li, Master Student, Dartmouth College
  */
 
@@ -13,7 +17,8 @@
 
 #define MAXQUADSIZE 2048	/* maximum number of quads */
 #define MAXTEMP 100		/* maximum number of temp vars */
-#define TEMP_BASE_ADDR 4000	/* where temp vars are saved */
+#define TEMP_BASE_ADDR 10000	/* where temp vars are saved */
+#define GLOBAL_BASE_ADDR TEMP_BASE_ADDR - MAXTEMP*4000	/* where global vars are saved */
 
 #define MAXFUNCNUM 100
 
@@ -43,31 +48,24 @@ typedef enum {
   JFNE,
 
   NOT,
-  PREINC,
-  INCPOST,
-  PREDEC,
-  DECPOST,
 
   // actually no need to separate, was being stupid
-  ASSNA,	// similar as LDA, direct
-  ASSN,	// similar as LD, indirect (dereference)
+  ASSN,	// similar as LDA, direct
+  ASSNF,	// similar as LD, indirect (dereference)
 
-  IF_FALSE,	// this group also needs expansion when assembling
-  IF_TRUE,	// not primitive instruction!
+ 
   GOTO,
 
   FUNC_CALL,
   PUSH,		// push, pop, and ret are not defined in TM57
+  PUSHA,	// add the value with current fp
   PUSHFP,
   POP,		// so need to expand them when assembling
   RET,
 
-  RDIA,		// similar as ASSNA
-  RDI,
-  RDFA,
-  RDF,
-  RDBA,	       	// seems unneccessary...
-  RDB,
+   RDI,
+   RDF,
+ 
   PRINTI,
   PRINTF,
   PRINTB,
@@ -77,6 +75,7 @@ typedef enum {
 
   FUNC_BODY,
   START,	// main
+  GROW
 } quad_op;
 
 /* Define quad operand type.
@@ -86,7 +85,8 @@ typedef enum  {
   OP_TYPE_INT,
   OP_TYPE_DOUBLE,
   OP_TYPE_STR,
-  OP_TYPE_ID
+  OP_TYPE_ID,
+  OP_TYPE_PT
 } operand_type;
 
 /* Define operand structure */

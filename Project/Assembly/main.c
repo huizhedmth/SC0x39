@@ -11,9 +11,7 @@
 #include <stdlib.h>
 #include "symtab.h"
 #include "quad.h"
-#include "assembly.h"
 
-FILE* out;
 extern ast_node root;
 extern void yyset(FILE*);
 extern char* yytext;
@@ -23,13 +21,11 @@ extern int sym_error;
 extern int qd_error;
 extern char* g_type;
 extern quad g_array[MAXQUADSIZE];
-char* filename = "output.tm57";
 
 int symDEBUG = 0;	/* debug flag */
 int tcDEBUG = 0;
 int qdDebug = 0;
 int TRACE = 0;
-int asm_debug = 1;
 
 /* Use command line options -t, -v and -f if you would like to see
  * the syntax tree, var-symtab or func-symtab, respectively.
@@ -63,7 +59,6 @@ int main(int argc, char** argv)
     return -1;
   }
 
-	out = fopen(filename, "w");
   for(i = 2; i < argc; i++){
     if(strcmp(argv[i], "-t") == 0){
       print_t = 1;
@@ -75,14 +70,7 @@ int main(int argc, char** argv)
       print_q = 1;
     }else if (strcmp(argv[i], "-trace") == 0){
       print_trace = 1;
-    }else if (strcmp(argv[i], "-o") == 0){
-      if (argv[i+1] == NULL){
-	printf("argument missing, using default file name\n");
-      }else{
-      	filename = argv[++i];
-	out = fopen(filename, "w");
-      }
-    } else{ 
+    }else{ 
       printf("acceptable options are -t, -v and -f\n");
     }
   }
@@ -129,12 +117,6 @@ int main(int argc, char** argv)
     return -1;
   }
   if (print_trace)  printf(" --- c57c --- intermediate code generated.\n");
-
-  // generate target code
-  gen_assembly();
-  
-  if (print_trace) printf(" --- c57c --- assembly generated\n");
-
   // print data structures
   if(print_t == 1)
     print_ast(root, 0);	
@@ -145,7 +127,5 @@ int main(int argc, char** argv)
   if(print_q == 1)   
     print_code();
  
-  print_instructions();
- fclose(out);
   return 0;
 } 

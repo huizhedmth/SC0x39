@@ -1,6 +1,11 @@
 /* quad.c
  *
  * Implementation of quad-related functions
+ * 
+ * The major function has the name "gen_code", which takes as input
+ * the syntax tree and symboltables, and store generated quads in 
+ * the global array g_array defined at line 31. This global will be 
+ * refered to by assembly generator to directly generate target codes.
  *
  * by Huizhe Li, Master Student, Dartmouth College
  */
@@ -19,25 +24,20 @@
 #define DEC_POST_FORM 1003
 
 
-
-/* Debug flat */
+/* Debug flag */
 extern int qdDebug;
 
 /* The global quad array */
 quad g_array[MAXQUADSIZE];
 
 /* Next quad index, also the size of quad array */
-static int next_quad = 0;
+int next_quad = 0;
 
 /* Next available temp var */
 static int next_free_temp = 0;
 
 /* Current function */
 static int cur_fun = -1;
-
-/* Current fp and sp */
-static int fp;	/* need to be initialized to point to main's fp */
-static int sp;	/* need to be initialized to point to the top of the stack */
 
 /* The patch queue */
 static quad g_patch_queue[MAXQUADSIZE];
@@ -108,6 +108,7 @@ char* op_str[] = {
 
   "FUNC_CALL",
   "PUSH",
+  "PUSHA",	
   "PUSHFP",
   "POP",
   "RET",
@@ -257,7 +258,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     id_node = root->left_child->left_child->right_sibling;
     source_addr = next_quad;
 
-    // build and insert quad. mark: this is not neccessary
+    // build and insert quad. 
     opcode = FUNC_BODY;
     op1 = create_operand(OP_TYPE_INT, TYPE_INT, (double)source_addr);	// line number of this quad    
     op2 = create_operand(OP_TYPE_STR, TYPE_INT, (double)id_node->sn);	
@@ -312,6 +313,9 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     // retrieve info
     entry = var_table->entries[root->sn];
     dtype = entry->dtype;
+    if (strcmp(entry->id, "c")==0){
+      //  printf("dtype: %d\n", dtype);
+    }
     source_addr = var_table->entries[root->sn]->addr;
 
     if (root->left_child != NULL){	// an array. type check guarentees that it's not non-integer indexed
@@ -352,6 +356,7 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
       op_ret = op_temp1;
   
     }else{	// not an array - simple
+      //     printf("mark: dtype: %d.\n", dtype);
       op_ret = create_operand(OP_TYPE_ID, dtype, (double)source_addr);
     }
 
@@ -376,32 +381,43 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     id_node = root->left_child;
     if (arg_node == NULL){	// the function takes no arguments, do nothing
     }else{	// push arguments from left to right, just as the order they are stored in the ast
+      opcode = PUSH;
       // find the fEntry in function_table
       fEntry = lookup_function(function_table, id_node->value.string);
       i = 0;
       for(child = arg_node->left_child; child != NULL; child = child->right_sibling){
+	opcode = PUSH;
 	// use a temp to hold the value of the argument(expression)
 	op_temp1 = gen_code(var_table, function_table, child);
 	// do coercion/widening if necessary
 	// check parameter type
 	dtype = fEntry->types[i++];
 	if ((op_temp1->dtype == TYPE_INT) && (dtype == TYPE_DOUBLE)){	// widen argument
+	    printf("mark 1\n");
 	  op_temp2 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, get_temp_addr(next_temp()));
 	  insert_quad(create_quad(ITOF, op_temp2, op_temp1, NULL));	
 	  op_temp1 = op_temp2;
 	}else if  ((op_temp1->dtype == TYPE_DOUBLE) && (dtype == TYPE_INT)){	// coerce argument
+	    printf("mark 2\n");
 	  op_temp2 = create_operand(OP_TYPE_ID, TYPE_DOUBLE, get_temp_addr(next_temp()));
 	  insert_quad(create_quad(FTOI, op_temp2, op_temp1, NULL));	
 	  printf("--- Warning --- implicitly cast double to int at line %d.\n", root->lineNumber);
 	  op_temp1 = op_temp2;
+	}else{	// push address instead of value if array argument
+	  //    printf("name: %s.\n", id_node->value.string);
+	  //printf("dtype: %d.\n", op_temp1->dtype);
+
+	  if ((op_temp1->dtype == TYPE_DOUBLE_ARRAY) || (op_temp1->dtype == TYPE_INT_ARRAY)){
+	    opcode = PUSHA;
+	  }
 	}
 	// push this argument, yeah~
-	insert_quad(create_quad(PUSH, op_temp1, NULL, NULL));
+	insert_quad(create_quad(opcode, op_temp1, NULL, NULL));
       }
     }
 
     // push fp
-    op1 = create_operand(OP_TYPE_INT, TYPE_INT, (double)fp);
+    op1 = create_operand(OP_TYPE_INT, TYPE_INT, (double)0);	// mark: figure out fp when generating assembly
     insert_quad(create_quad(PUSHFP, op1, NULL, NULL));
 
     // push return address, which (for now) is the index after "FUNC_CALL" quad
@@ -842,27 +858,6 @@ operand gen_code(flat_symtab var_table, func_table function_table, ast_node root
     break;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* Create operand, need to cast value type */
 operand create_operand(operand_type type, data_type dtype,  double value)

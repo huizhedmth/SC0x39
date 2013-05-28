@@ -19,6 +19,9 @@
 
 #define MAXINSTR 10000
 
+#define OPCODE_TYPE_RO 1000
+#define OPCODE_TYPE_RM 1001
+
 typedef enum {
   ASM_HALT,
   ASM_IN,
@@ -70,8 +73,7 @@ typedef enum {
 typedef enum {
   ASM_OPERAND_TYPE_INT,
   ASM_OPERAND_TYPE_DOUBLE,
-  ASM_OPERAND_TYPE_STRING,
-  ASM_OPERAND_TYPE_FLOAT
+  ASM_OPERAND_TYPE_STRING
 }asm_operand_type;
 
 struct asm_operand{
@@ -88,28 +90,61 @@ typedef struct asm_operand *asm_operand;
 struct asm_instr{
   asm_opcode opcode;
   asm_operand operands[3];
-asm_opcode_type	opcode_type;
+  int opcode_type;
   int asm_ln;	// line number in target code
   int qd_ln;	// line number of quad that produces this instruction
 };
 
 typedef struct asm_instr *asm_instr;
 
+/* An entry that contains info needed to patch a line */
+struct patch_entry{
+  int asm_ln;		// line number in assembly instructions
+  int index;		// index of operand to be patched
+  int quad_ln;		// line number of the quad that is supposed to know how to patch it
+};
+typedef struct patch_entry patch_entry;
+
+typedef struct patch_table{
+  patch_entry entries[MAXINSTR];
+  int size;
+}patch_table;
+  
 /******************************* function prototype *********************************/
 
 /* Create an operand struct, need to specify value */
 asm_operand create_asm_operand(asm_operand_type type);
 
 /* Create an instrction with 3 integer operands */
-asm_instr create_int_instr(asm_opcode opcode, int op1, int op2, int op3);
+asm_instr create_int_instr(int opcode_type, asm_opcode opcode, int op1, int op2, int op3);
 
 /* Create an instr struct */
-asm_instr create_asm_instr(asm_opcode opcode, asm_operand op1, asm_operand op2, asm_operand op3);
+asm_instr create_asm_instr(int opcode_type, asm_opcode opcode, asm_operand op1, asm_operand op2, asm_operand op3);
 
-/* Generate assembly code for a given quad, insert them into the global, and modify counters accordingly */
+/* Generate assembly code for a given quad */
 void gen_asm_from_quad(quad this_quad);
 
 /* Print all instructions */
 void print_instructions();
+
+/* Print an operand */
+static void print_operand(asm_operand op);
+
+/* Patch an instruction */
+void patch_instruction(int asm_ln, int index, int val);
+
+asm_instr create_double_3_instr(int opcode_type, asm_opcode opcode, double val1, double val2, double val3);
+asm_instr create_double_instr(int opcode_type, asm_opcode opcode, int val1, double val2, int val3);
+
+/* Register a patch entry */
+void reg_entry(int asm_ln, int index, quad this_quad);
+
+/* similar to the above, but the reference addr is the value that is in the argument
+ * instead of the argument it self
+ */
+void absolute_addr_deref(int addr);
+
+/* Compute the absolute address of an address given by a quad, store it in REG_2 */
+void absolute_addr(int addr);
 
 #endif // ASSEMBLY_H

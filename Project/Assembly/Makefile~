@@ -9,7 +9,7 @@
 
 
 
-TARGET = quad
+TARGET = driver
 LEXER = lex.yy.c
 CC = gcc
 SOURCE = C57.l
@@ -19,8 +19,11 @@ CFLAG = -w
 
 target: $(TARGET) 
 
-$(TARGET): main.o  parser.o lexer.o ast.o symtab.o typecheck.o address.o quad.o
-	@$(CC) $(CFLAG) -o $(TARGET) main.o lexer.o parser.o ast.o symtab.o address.o typecheck.o quad.o -lfl
+$(TARGET): driver.o  parser.o lexer.o ast.o symtab.o typecheck.o address.o quad.o assembly.o
+	@$(CC) $(CFLAG) -o $(TARGET) driver.o lexer.o parser.o ast.o symtab.o address.o typecheck.o quad.o assembly.o -lfl
+
+assembly.o: assembly.c
+	@$(CC) $(CFLAG) -o assembly.o -c assembly.c
 
 test_quad.o: test_quad.c
 	@$(CC) $(CFLAG) -o test_quad.o -c test_quad.c
@@ -40,8 +43,8 @@ symtab.o: symtab.c
 ast.o:	ast.c
 	@$(CC) $(CFLAG) -o ast.o -c ast.c
 
-main.o: main.c 
-	@$(CC) $(CFLAG) -o main.o -c main.c 
+driver.o: driver.c
+	@$(CC) $(CFLAG) -o driver.o -c driver.c 
 
 lexer.o: $(LEXER) 
 	@$(CC) $(CFLAG) -o lexer.o -c $(LEXER)
@@ -58,5 +61,5 @@ C57.tab.c: C57.y
 .PHONY: clean
 
 clean: 
-	@-rm -f  main.o lexer.o parser.o C57.tab.c C57.tab.h symtab.o typecheck.o address.o quad.o $(TARGET) $(LEXER)
+	@-rm -f  driver.o lexer.o parser.o ast.o C57.tab.c C57.tab.h symtab.o typecheck.o address.o quad.o $(TARGET) $(LEXER)
 	@-rm -f C57.output

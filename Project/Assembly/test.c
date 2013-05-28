@@ -1,8 +1,13 @@
-void f(){}
-
 void main(void)
 {
-  print "hello, world\n";
+  int a;
+  if (1+2==0.3){
+    print "hello";
+  }else{
+    print "yuck";
+  }
+
+  a = 1;
 }
 
 

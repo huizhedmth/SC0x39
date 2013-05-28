@@ -47,18 +47,13 @@ typedef enum {
   JFEQ,
   JFNE,
 
-  NOT,
-  PREINC,
-  INCPOST,
-  PREDEC,
-  DECPOST,
+  NOT,	// unused
 
   // actually no need to separate, was being stupid
-  ASSNA,	// similar as LDA, direct
-  ASSN,	// similar as LD, indirect (dereference)
+  ASSN,	// similar as LDA, direct
+  ASSNF,	// similar as LD, indirect (dereference)
 
-  IF_FALSE,	// this group also needs expansion when assembling
-  IF_TRUE,	// not primitive instruction!
+ 
   GOTO,
 
   FUNC_CALL,
@@ -68,12 +63,9 @@ typedef enum {
   POP,		// so need to expand them when assembling
   RET,
 
-  RDIA,		// similar as ASSNA
-  RDI,
-  RDFA,
-  RDF,
-  RDBA,	       	// seems unneccessary...
-  RDB,
+   RDI,
+   RDF,
+ 
   PRINTI,
   PRINTF,
   PRINTB,
@@ -83,6 +75,7 @@ typedef enum {
 
   FUNC_BODY,
   START,	// main
+  GROW
 } quad_op;
 
 /* Define quad operand type.
@@ -92,7 +85,8 @@ typedef enum  {
   OP_TYPE_INT,
   OP_TYPE_DOUBLE,
   OP_TYPE_STR,
-  OP_TYPE_ID
+  OP_TYPE_ID,
+  OP_TYPE_PT
 } operand_type;
 
 /* Define operand structure */

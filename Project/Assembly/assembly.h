@@ -133,4 +133,30 @@ static void print_operand(asm_operand op);
 /* Patch an instruction */
 void patch_instruction(int asm_ln, int index, int val);
 
+asm_instr create_double_3_instr(int opcode_type, asm_opcode opcode, double val1, double val2, double val3);
+asm_instr create_double_instr(int opcode_type, asm_opcode opcode, int val1, double val2, int val3);
+
+/* Register a patch entry */
+void reg_entry(int asm_ln, int index, int quad_line);
+
+/* similar to the above, but the reference addr is the value that is in the argument
+ * instead of the argument it self
+ */
+void absolute_addr_deref(int addr);
+
+/* Compute the absolute address of an address given by a quad, store it in REG_2 */
+void absolute_addr(int addr);
+
+/* Wrapper for ADD ~ MOD */
+void gen_biop(quad this_quad, int opcode);
+
+/* Wrapper for ADDF ~ DIVF*/
+void gen_fbiop(quad this_quad, int opcode);
+
+/* Wrapper for integer jumps */
+void gen_jmp(quad this_quad, int opcode);
+
+/* Wrapper for float jumps */
+void gen_fjmp(quad this_quad, int opcode);
+
 #endif // ASSEMBLY_H
